@@ -1,0 +1,63 @@
+Copyright 2016 George "Stalker" Petrou
+
+Created by Stalker - http://steamcommunity.com/profiles/76561197996451757/
+
+Message to reader:
+	If you intend on leaking this addon I can't stop you. Although it is a compliment to see people trying
+	to get their hands on my code it is also shitty because well, you're stealing it from me. All I ask is that before
+	leaking my addon you place yourself in my shoes and think about how much it sucks to have something
+	you spent hours making being given out by someone else for free. Other than that, enjoy it anyways!
+
+//////////////////////////////////////////
+//// Developer Documentation ////
+//////////////////////////////////////////
+
+Lua Documentation:
+	function Player:IsProne()							-- Shared (Networked). Returns if the player is currently prone
+	function Player:HandleProne()					-- Shared (Should be ran on both to work). Decides if the player can, then either puts them into or exits them from prone
+	
+	function prone.StartProne(player, CalledOnServerOnly)
+		-- The second arguement should be true if prone.StartProne() is being called somewhere that is SERVER only.
+		-- The second arguement can be omitted if ran shared.
+		
+	function prone.StopProne(player, forced, CalledOnServerOnly)
+		-- The second arguement will force the player out of prone without an animation, instantly.
+		-- The third arguement is the same as the second arguement in prone.StartProne(). Read it above.
+		
+	Any other functions shouldn't really called by themselves because doing so will probably mess something up.
+
+
+Changelog:
+
+	1.1.5
+		- Fixes model twitching when clicking the jump button
+	1.1.4
+		- Fixes oversight with shooting and moving
+	1.1.3
+		- Fixes issue with custom weapons
+		- Fixes issue with fists (no weapon)
+	1.1.2
+		- Fixes major PVS bug
+	1.1.1
+		- Fixed many bugs involving Trouble in Terrorist Town
+		- Fixed invisible weapons
+		- Your body now tilts with the way you look
+		- Made the addon a bit more robust
+	1.1.0
+		- Support for any model!
+		- Fixes bugs involving having no weapons
+		- Plenty of optimization fixes
+		- Cleaned up config a bit, removed useless options
+		- Improved CanExitProne
+		- Switched to sequencing animations rather than ACT events
+		- Fixed multiple edge cases which would cause errors
+	1.0.4
+		- Fixed going prone without a weapon
+	1.0.3
+		- Better Deathrun support
+	1.0.2
+		-	Models moved to workshop
+	1.0.1
+		-	Better NutScript Support
+	1.0.0
+		-	Initial Release	
