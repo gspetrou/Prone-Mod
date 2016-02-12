@@ -1,5 +1,7 @@
 -- Made by George "Stalker" Petrou, enjoy!
 
+local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
+
 local function GetSequenceForWeapon(holdtype, moving)
 	return moving and prone.WeaponAnims.moving[holdtype] or prone.WeaponAnims.idle[holdtype]
 end
@@ -78,6 +80,8 @@ hook.Add("SetupMove", "Prone_PreventJumpWehenProne", function(ply, cmd)
 		if cmd:KeyDown(IN_JUMP) then
 			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))	-- Disables jumping
 		end
+
+		cmd:SetMaxClientSpeed(prone.ProneSpeed)
 	end
 end)
 
@@ -116,6 +120,14 @@ if not prone.CanMoveAndShoot then
 					end
 				end
 			end
+		end
+	end)
+end
+
+if GameMode == "terrortown" then
+	hook.Add("TTTPlayerSpeed", "Prone_SlowSpeed", function(ply)
+		if ply:IsProne() then
+			return prone.ProneSpeed/220	-- 220 is the default run speed in TTT
 		end
 	end)
 end

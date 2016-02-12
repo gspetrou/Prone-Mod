@@ -3,6 +3,8 @@
 util.AddNetworkString("Prone_HandleProne")
 util.AddNetworkString("Prone_StartProne")
 util.AddNetworkString("Prone_EndProne")
+util.AddNetworkString("Prone_LoadPronedPlayers") -- On Connect
+util.AddNetworkString("Prone_UpdateProneModel")
 
 local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
 local PLY = FindMetaTable("Player")
@@ -17,16 +19,29 @@ function PLY:HandleProne()
 
 	local allowed = true
 
-	if GameMode == "darkrp" and prone.RestrictByJob then
-		local PlyJob = string.lower(self:getJobTable().name)
-		allowed = false
+	if GameMode == "darkrp" then
+		if prone.RestrictByJob then
+			local PlyJob = string.lower(self:getJobTable().name)
+			allowed = false
 
-		for i, v in ipairs(prone.AllowedJobs) do
-			if PlyJob == string.lower(v) then
-				allowed = true
-				break
+			for i, v in ipairs(prone.AllowedJobs) do
+				if PlyJob == string.lower(v) then
+					allowed = true
+					break
+				end
 			end
 		end
+
+		if self.Babygod then
+			allowed = false
+			self:PrintMessage(HUD_PRINTTALK, "You can't go prone while in spawn protection.")
+
+			return
+		end
+	elseif GameMode == "terrortown" and GetRoundState() == ROUND_PREP then
+		allowed = false
+
+		return
 	end
 
 	if not self.AllowAllProne then
@@ -72,6 +87,13 @@ function PLY:CanExitProne()
 	return not tr.Hit
 end
 
+function prone.UpdateProneModel(ply, model)
+	net.Start("Prone_UpdateProneModel")
+		net.WriteEntity(ply)
+		net.WriteString(model)
+	net.Broadcast()
+end
+
 function prone.StartProne(ply)
 	if not IsValid(ply) then return end
 
@@ -85,9 +107,6 @@ function prone.StartProne(ply)
 	ply.Prone_OldRenderMode = ply:GetRenderMode()
 	ply.Prone_OldViewOffset = ply:GetViewOffset()
 	ply.Prone_OldViewOffsetDucked = ply:GetViewOffsetDucked()
-	ply.Prone_OldWalkSpeed = ply:GetWalkSpeed()
-	ply.Prone_OldRunSpeed = ply:GetRunSpeed()
-	ply.Prone_CanAltWalk = ply:GetCanWalk()
 	ply:SetRenderMode(RENDERMODE_TRANSALPHA)
 	ply:SetColor(Color(255, 255, 255, 0))
 	------------------
@@ -115,10 +134,6 @@ function prone.StartProne(ply)
 		weapon:SetNextSecondaryFire(delay)
 	end
 
-	ply:SetWalkSpeed(prone.ProneSpeed)
-	ply:SetRunSpeed(prone.ProneSpeed)
-	ply:SetCanWalk(false)
-
 	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))
 	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
 	------------------
@@ -142,6 +157,13 @@ function prone.EndProne(ply, forced)
 		local _, length = ply:LookupSequence("ProneDown_Stand")
 		ply:SetProneAnimLength(length + ply.Prone_EndTime)
 		ply:SetProneAnimState(2)
+
+		local weapon = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon() or false
+		if weapon then
+			local delay = length + ply.Prone_EndTime
+			weapon:SetNextPrimaryFire(delay)
+			weapon:SetNextSecondaryFire(delay)
+		end
 	else
 		prone.ExitProne(ply)
 	end
@@ -157,10 +179,9 @@ function prone.ExitProne(ply)
 	ply:SetRenderMode(ply.Prone_OldRenderMode)
 	ply:SetViewOffset(ply.Prone_OldViewOffset)
 	ply:SetViewOffsetDucked(ply.Prone_OldViewOffsetDucked)
-	ply:SetWalkSpeed(ply.Prone_OldWalkSpeed)
-	ply:SetRunSpeed(ply.Prone_OldRunSpeed)
-	ply:SetCanWalk(ply.Prone_CanAltWalk)
 	ply:ResetHull()
+
+	ply.Prone_AnimWaterFix = false
 
 	net.Start("Prone_EndProne")
 		net.WriteEntity(ply)
