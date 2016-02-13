@@ -1,6 +1,6 @@
 -- Made by George "Stalker" Petrou, enjoy!
 
-function prone.CreateFakeProneModel(ply, model, color)
+function prone.CreateFakeProneModel(ply, model, color, bodygroups)
 	ply.ProneModel = ClientsideModel(model)
 		ply.ProneModel:SetOwner(ply)
 		ply.ProneModel:SetParent(ply)
@@ -14,6 +14,8 @@ function prone.CreateFakeProneModel(ply, model, color)
 		ply:SetSequence("ProneDown_Stand")
 		ply:SetCycle(0)
 		ply:SetPlaybackRate(1)
+
+		ply.ProneModel:SetBodyGroups(bodygroups)
 end
 
 concommand.Add("prone", function()
@@ -30,13 +32,13 @@ net.Receive("Prone_UpdateProneModel", function()
 end)
 
 net.Receive("Prone_StartProne", function()
-	local ply, model, color = net.ReadEntity(), net.ReadString(), net.ReadColor()
+	local ply, model, color, bodygroups = net.ReadEntity(), net.ReadString(), net.ReadColor(), net.ReadString()
 
 	if IsValid(ply) then
 		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))		-- For prediction
 		ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
 
-		prone.CreateFakeProneModel(ply, model, color)
+		prone.CreateFakeProneModel(ply, model, color, bodygroups)
 	end
 end)
 

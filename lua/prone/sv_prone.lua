@@ -102,6 +102,12 @@ function prone.StartProne(ply)
 	------------------
 	------------------
 
+	local BodyGroupsCount = ply:GetNumBodyGroups()
+	local BodyGroups = ""
+	for i = 0, BodyGroupsCount do
+		BodyGroups = BodyGroups..tostring(ply:GetBodygroup(i))
+	end
+
 	ply.Prone_OldModel = ply:GetModel()
 	ply.Prone_OldColor = ply:GetColor()
 	ply.Prone_OldRenderMode = ply:GetRenderMode()
@@ -139,10 +145,12 @@ function prone.StartProne(ply)
 	------------------
 	------------------
 
+
 	net.Start("Prone_StartProne")
 		net.WriteEntity(ply)
 		net.WriteString(ply.Prone_OldModel)
 		net.WriteColor(Color(ply.Prone_OldColor.r, ply.Prone_OldColor.g, ply.Prone_OldColor.b, ply.Prone_OldColor.a))
+		net.WriteString(BodyGroups)
 	net.Broadcast()
 
 	ply:SetProneAnimState(0)
