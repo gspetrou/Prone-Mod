@@ -2,6 +2,9 @@ Copyright 2016 George "Stalker" Petrou
 
 Created by Stalker - http://steamcommunity.com/profiles/76561197996451757/
 
+MAKE SURE YOU INSTALL THE WORKSHOP MODELS:
+http://steamcommunity.com/sharedfiles/filedetails/?id=609281761
+
 Message to reader:
 	If you intend on leaking this addon I can't stop you. Although it is a compliment to see people trying
 	to get their hands on my code it is also shitty because well, you're stealing it from me. All I ask is that before
@@ -14,23 +17,32 @@ Message to reader:
 
 Lua Documentation:
 	function Player:IsProne()							-- Shared (Networked). Returns if the player is currently prone
-	function Player:HandleProne()					-- Shared (Should be ran on both to work). Decides if the player can, then either puts them into or exits them from prone
+	function Player:HandleProne()					-- Server. Decides if the player can, then either puts them into or exits them from prone
 	
-	function prone.StartProne(player, CalledOnServerOnly)
-		-- The second arguement should be true if prone.StartProne() is being called somewhere that is SERVER only.
-		-- The second arguement can be omitted if ran shared.
-		
-	function prone.StopProne(player, forced, CalledOnServerOnly)
-		-- The second arguement will force the player out of prone without an animation, instantly.
-		-- The third arguement is the same as the second arguement in prone.StartProne(). Read it above.
+	function prone.StartProne(player)			-- Server. Puts them in prone
+	function prone.EndProne(player, forced)	-- Server. If the second arguement is true they will force exit, instantly, without a leaving animation
 		
 	Any other functions shouldn't really called by themselves because doing so will probably mess something up.
 
 
 Changelog:
 
-	1.1.5
+	1.3.0
+		- Added body group support when entering prone
+		- Fixed speed bug
+		- Added warnings if you try to use the addon without the prone models on the server
+		- Fixed bug with restricting moving and shooting
+		- More optimizations
+	1.2.1
+		- Fixes issues with changing job in DarkRP
+		- Fixes issues with kicking proned players
+	1.2.0
 		- Fixes model twitching when clicking the jump button
+		- Fixes invisibility bug
+		- Fixes DarkRP and TTT incompatability issues
+		- Fixes weapon/player color issues
+		- Major optimizations
+		- No more twitching when exitting and entering prone
 	1.1.4
 		- Fixes oversight with shooting and moving
 	1.1.3

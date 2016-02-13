@@ -32,20 +32,20 @@ prone.CanMoveAndShoot = false
 -- Any of the weapons in this list can be fired while moving.
 -- Only works if prone.CanMoveAndShoot is false, otherwise every weapon can be shot while moving.
 prone.WhitelistedWeapons = {
-	"weapon_physgun",
-	"weapon_physcannon",		-- GravGun
-	"gmod_tool",				-- Toolgun
-	"gmod_camera",
-	"weapon_medkit",
-	"weaponchecker",			-- (DarkRP)
-	"keys",						-- (DarkRP)
-	"pocket",					-- (DarkRP)
-	"weapon_keypadchecker",		-- (DarkRP)
-	"unarrest_stick",			-- (DarkRP)
-	"arrest_stick",				-- (DarkRP)
-	"weapon_zm_carry",			-- (TTT) Magneto Stick
-	"weapon_ttt_binoculars",	-- (TTT)
-	"weapon_ttt_unarmed"		-- (TTT)
+	weapon_physgun			= true,
+	weapon_physcannon		= true,		-- GravGun
+	gmod_tool				= true,		-- Toolgun
+	gmod_camera				= true,
+	weapon_medkit			= true,
+	weaponchecker			= true,		-- (DarkRP)
+	keys					= true,		-- (DarkRP)
+	pocket					= true,		-- (DarkRP)
+	weapon_keypadchecker	= true,		-- (DarkRP)
+	unarrest_stick			= true,		-- (DarkRP)
+	arrest_stick			= true,		-- (DarkRP)
+	weapon_zm_carry			= true,		-- (TTT) Magneto Stick
+	weapon_ttt_binoculars	= true,		-- (TTT)
+	weapon_ttt_unarmed		= true		-- (TTT)
 }
 
 

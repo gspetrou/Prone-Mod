@@ -9,6 +9,18 @@ util.AddNetworkString("Prone_UpdateProneModel")
 local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
 local PLY = FindMetaTable("Player")
 
+if not (util.IsValidModel("models/player/dod_player_shared.mdl") and util.IsValidModel("models/player/p_kleiner.mdl") and util.IsValidModel("models/player/p_alyx.mdl")) then
+	hook.Add("PlayerInitialSpawn", "Prone_NotifyMissingModels", function(ply)
+		if ply:GetUserGroup() ~= "user" then
+			ply:PrintMessage(HUD_PRINTTALK, "The prone models are missing from the server, expect issues!")
+		end
+		
+		timer.Create("Prone_NotifyMissingModels", 5, 0, function()
+			ply:PrintMessage(HUD_PRINTTALK, "The prone models are missing from the server, expect issues!")
+		end)
+	end)
+end
+
 -- This should be the main way players enter/exit prone. Not the other functions bellow.
 function PLY:HandleProne()
 	if self.Prone_LastProneRequestDelay > CurTime() or not self:Alive() then

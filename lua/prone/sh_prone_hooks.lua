@@ -91,14 +91,8 @@ if not prone.CanMoveAndShoot then
 			local weapon = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon() or false
 
 			if weapon then
-				local IsWhitelistedWeapon = false
 				local WepClass = weapon:GetClass()
-
-				for i, v in ipairs(prone.WhitelistedWeapons) do
-					if WepClass == v then
-						IsWhitelistedWep = true
-					end
-				end
+				local IsWhitelistedWeapon = prone.WhitelistedWeapons[WepClass]
 
 				if not IsWhitelistedWeapon then
 					local ShouldStopMovement = true
@@ -113,7 +107,7 @@ if not prone.CanMoveAndShoot then
 						ShouldStopMovement = false
 					end
 
-					if ShouldStopMovement then
+					if ShouldStopMovement or WepClass == "weapon_crowbar" then
 						mv:SetForwardSpeed(0)
 						mv:SetSideSpeed(0)
 						mv:SetVelocity(Vector(0, 0, 0))

@@ -37,14 +37,7 @@ hook.Add("PlayerLoadout", "Prone_ModelFix", function(ply)
 
 		ply:SetModel("models/player/p_kleiner.mdl")
 
-		ply.Prone_OldWalkSpeed = ply:GetWalkSpeed()
-		ply.Prone_OldRunSpeed = ply:GetRunSpeed()
-		ply.Prone_CanAltWalk = ply:GetCanWalk()
 		ply.Prone_OldColor = ply:GetColor()
-
-		ply:SetWalkSpeed(prone.ProneSpeed)
-		ply:SetRunSpeed(prone.ProneSpeed)
-		ply:SetCanWalk(false)
 	end
 end)
 
