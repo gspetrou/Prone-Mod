@@ -68,10 +68,12 @@ end)
 
 timer.Create("Prone_WaitForValidPlayers", .5, 0, function()
 	if IsValid(LocalPlayer()) then
-		net.Start("Prone_LoadPronedPlayers")
-		net.SendToServer()
+		timer.Simple(.25, function()
+			net.Start("Prone_LoadPronedPlayers")
+			net.SendToServer()
 
-		timer.Remove("Prone_WaitForValidPlayers")
+			timer.Remove("Prone_WaitForValidPlayers")
+		end)
 	end
 end)
 
