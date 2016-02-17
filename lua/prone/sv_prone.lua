@@ -5,6 +5,7 @@ util.AddNetworkString("Prone_StartProne")
 util.AddNetworkString("Prone_EndProne")
 util.AddNetworkString("Prone_LoadPronedPlayers") -- On Connect
 util.AddNetworkString("Prone_UpdateProneModel")
+util.AddNetworkString("Prone_SendWarningText")
 
 local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
 local PLY = FindMetaTable("Player")
@@ -17,6 +18,17 @@ if not (util.IsValidModel("models/player/dod_player_shared.mdl") and util.IsVali
 		
 		timer.Create("Prone_NotifyMissingModels", 5, 0, function()
 			ply:PrintMessage(HUD_PRINTTALK, "The prone models are missing from the server, expect issues!")
+	hook.Add("InitPostEntity", "Prone_NotifyMissingModels", function()
+		timer.Create("Prone_NoProneModelWarning", 10, 0, function()
+			local allplys = player.GetAll()
+			
+			for i, v in ipairs(allplys) do
+				if v:GetUserGroup() ~= "user" then
+					net.Start("Prone_SendWarningText")
+						net.WriteString("The prone models are missing from the server, expect issues!")
+					net.Broadcast()
+				end
+			end
 		end)
 	end)
 end
@@ -46,7 +58,9 @@ function PLY:HandleProne()
 
 		if self.Babygod then
 			allowed = false
-			self:PrintMessage(HUD_PRINTTALK, "You can't go prone while in spawn protection.")
+			net.Start("Prone_SendWarningText")
+				net.WriteString("You can't go prone while in spawn protection.")
+			net.Send(self)
 
 			return
 		end
@@ -93,7 +107,9 @@ function PLY:CanExitProne()
 	})
 
 	if tr.Hit then
-		self:PrintMessage(HUD_PRINTTALK, "There isn't enough room to stand up!")
+		net.Start("Prone_SendWarningText")
+			net.WriteString("There isn't enough room to stand up!")
+		net.Send(self)
 	end
 	
 	return not tr.Hit

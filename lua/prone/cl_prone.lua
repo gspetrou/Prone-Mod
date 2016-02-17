@@ -91,3 +91,9 @@ timer.Create("Prone_ManageFakeModels", 1, 0, function()
 		end
 	end
 end)
+
+net.Receive("Prone_SendWarningText", function()
+	local text = net.ReadString()
+
+	chat.AddText(Color(210, 10, 10), text)
+end)
