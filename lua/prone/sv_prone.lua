@@ -11,13 +11,6 @@ local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
 local PLY = FindMetaTable("Player")
 
 if not (util.IsValidModel("models/player/dod_player_shared.mdl") and util.IsValidModel("models/player/p_kleiner.mdl") and util.IsValidModel("models/player/p_alyx.mdl")) then
-	hook.Add("PlayerInitialSpawn", "Prone_NotifyMissingModels", function(ply)
-		if ply:GetUserGroup() ~= "user" then
-			ply:PrintMessage(HUD_PRINTTALK, "The prone models are missing from the server, expect issues!")
-		end
-		
-		timer.Create("Prone_NotifyMissingModels", 5, 0, function()
-			ply:PrintMessage(HUD_PRINTTALK, "The prone models are missing from the server, expect issues!")
 	hook.Add("InitPostEntity", "Prone_NotifyMissingModels", function()
 		timer.Create("Prone_NoProneModelWarning", 10, 0, function()
 			local allplys = player.GetAll()
@@ -85,7 +78,7 @@ function PLY:HandleProne()
 	end
 
 	if allowed then
-		if not self:IsProne() then
+		if not self.InProne then
 			if self:GetMoveType() ~= MOVETYPE_NOCLIP and self:IsFlagSet(FL_ONGROUND) and self:WaterLevel() <= 1 then
 				prone.StartProne(self)
 			end
@@ -126,6 +119,8 @@ function prone.StartProne(ply)
 	if not IsValid(ply) then return end
 
 	ply:SetNW2Bool("prone_isprone", true)
+
+	ply.InProne = true
 	ply.Prone_StartTime = CurTime()
 	------------------
 	------------------
@@ -141,6 +136,7 @@ function prone.StartProne(ply)
 	ply.Prone_OldRenderMode = ply:GetRenderMode()
 	ply.Prone_OldViewOffset = ply:GetViewOffset()
 	ply.Prone_OldViewOffsetDucked = ply:GetViewOffsetDucked()
+	ply.Prone_OldPlayerColor = ply:GetPlayerColor()
 	ply:SetRenderMode(RENDERMODE_TRANSALPHA)
 	ply:SetColor(Color(255, 255, 255, 0))
 	------------------
@@ -210,6 +206,7 @@ function prone.ExitProne(ply)
 	if not IsValid(ply) then return end
 
 	ply:SetNW2Bool("prone_isprone", false)
+	ply.InProne = false
 
 	ply:SetModel(ply.Prone_OldModel)
 	ply:SetRenderMode(ply.Prone_OldRenderMode)

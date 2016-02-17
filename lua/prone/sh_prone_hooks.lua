@@ -51,7 +51,7 @@ hook.Add("UpdateAnimation", "Prone_Animations", function(ply, velocity, maxSeqGr
 				ply:SetProneAnimState(1)
 			end
 		elseif AnimState == 2 then -- Getting Up
-			if ply:GetProneAnimLength() > CurTime() then
+			if ply:GetProneAnimLength() + 0.1 > CurTime() then
 				seq = "ProneUp_Stand"
 
 				local DownVect = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))

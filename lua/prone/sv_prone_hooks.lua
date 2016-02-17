@@ -9,11 +9,15 @@ end)
 hook.Add("PlayerInitialSpawn", "Prone_SetupVariables", function(ply)
 	ply.Prone_LastBindKeyRelease = 0
 	ply.Prone_LastProneRequestDelay = 0
+
+	-- Without this server only variable we would have to call ply:IsProne() a lot
+	-- which is a bit more expensive
+	ply.InProne = false
 end)
 
 net.Receive("Prone_LoadPronedPlayers", function(len, ply)
 	for i, v in ipairs(player.GetAll()) do
-		if v:IsProne() then
+		if v.InProne then
 			net.Start("Prone_StartProne")
 				net.WriteEntity(v)
 				net.WriteString(v.Prone_OldModel)
@@ -24,7 +28,7 @@ net.Receive("Prone_LoadPronedPlayers", function(len, ply)
 end)
 
 hook.Add("PlayerDisconnected", "Prone_CleanupFakeModels", function(ply)
-	if ply:IsProne() then
+	if ply.InProne then
 		net.Start("Prone_EndProne")
 		net.Broadcast()
 	end
@@ -62,42 +66,45 @@ if prone.BindKey then
 end
 
 hook.Add("DoPlayerDeath", "Prone_ExitOnDeath", function(ply)
-	if IsFirstTimePredicted() and ply:IsProne() then
+	if IsFirstTimePredicted() and ply.InProne then
 		prone.EndProne(ply, true)
 	end
 end)
 
 hook.Add("PlayerNoClip", "Prone_ExitOnEnterNoclip", function(ply)
-	if IsFirstTimePredicted() and ply:IsProne() then
+	if IsFirstTimePredicted() and ply.InProne then
 		prone.EndProne(ply, true)
 	end
 end)
 
 hook.Add("VehicleMove", "Prone_ExitOnEnterVehicle", function(ply)
-	if IsFirstTimePredicted() and ply:IsProne() then
+	if IsFirstTimePredicted() and ply.InProne then
 		prone.EndProne(ply, true)
 	end
 end)
 
-hook.Add("PlayerTick", "Prone_ExitProneOnConditions", function(ply)
-	if IsFirstTimePredicted() and ply:IsProne() then
-		if ply:IsRagdoll() or ply:InVehicle() then
-			prone.EndProne(ply, true)
-		elseif not ply.Prone_AnimWaterFix and ply:WaterLevel() > 1 then
-			prone.EndProne(ply)
-			ply.Prone_AnimWaterFix = true
+-- Before we used PlayerTick, that was unnecessary
+timer.Create("Prone_ManagePlayersActions", 1, 0, function()
+	for i, v in ipairs(player.GetAll()) do
+		if v.InProne then
+			if v:IsRagdoll() or v:InVehicle() then
+				prone.EndProne(v, true)
+			elseif not v.Prone_AnimWaterFix and v:WaterLevel() > 1 then
+				prone.EndProne(v)
+				v.Prone_AnimWaterFix = true
+			end
 		end
 	end
 end)
 
 hook.Add("PlayerFootstep", "Prone_MuteFootstepSound", function(ply)
-	return ply:IsProne()
+	return ply.InProne
 end)
 
 if GameMode == "terrortown" then
 	hook.Add("TTTPrepareRound", "Prone_FixRemove", function()
 		for i, v in ipairs(player.GetAll()) do
-			if v:IsProne() then
+			if v.InProne then
 				prone.EndProne(v)
 			end
 		end
@@ -105,7 +112,7 @@ if GameMode == "terrortown" then
 
 	hook.Add("TTTBeginRound", "Prone_FixRemove", function()
 		for i, v in ipairs(player.GetAll()) do
-			if v:IsProne() then
+			if v.InProne then
 				prone.EndProne(v)
 			end
 		end
