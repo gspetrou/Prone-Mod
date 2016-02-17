@@ -34,14 +34,25 @@ hook.Add("PlayerDisconnected", "Prone_CleanupFakeModels", function(ply)
 	end
 end)
 
-hook.Add("PlayerLoadout", "Prone_ModelFix", function(ply)
-	if ply:IsProne() then
-		ply.Prone_OldModel = ply:GetModel()
-		prone.UpdateProneModel(ply, ply.Prone_OldModel)
+hook.Add("InitPostEntity", "Prone_LoadoutSwitchFix", function()
+	local Derived = GAMEMODE.DerivedFrom
+	local hookname = "PlayerLoudout"
 
-		ply:SetModel("models/player/p_kleiner.mdl")
+	if Derived == "nutscript" then
+		hookname = "PostPlayerLoadout"
+	end
 
-		ply.Prone_OldColor = ply:GetColor()
+	if Derived ~= "clockwork" then
+		hook.Add(hookname, "Prone_LoadoutSwitchFix", function()
+			if ply.InProne then
+				ply.Prone_OldModel = ply:GetModel()
+				prone.UpdateProneModel(ply, ply.Prone_OldModel)
+
+				ply:SetModel("models/player/p_kleiner.mdl")
+
+				ply.Prone_OldColor = ply:GetColor()
+			end
+		end)
 	end
 end)
 
