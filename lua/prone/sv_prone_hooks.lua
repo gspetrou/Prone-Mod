@@ -36,14 +36,14 @@ end)
 
 hook.Add("InitPostEntity", "Prone_LoadoutSwitchFix", function()
 	local Derived = GAMEMODE.DerivedFrom
-	local hookname = "PlayerLoudout"
+	local hookname = "PlayerLoadout"
 
 	if Derived == "nutscript" then
 		hookname = "PostPlayerLoadout"
 	end
 
 	if Derived ~= "clockwork" then
-		hook.Add(hookname, "Prone_LoadoutSwitchFix", function()
+		hook.Add(hookname, "Prone_LoadoutSwitchFix", function(ply)
 			if ply.InProne then
 				ply.Prone_OldModel = ply:GetModel()
 				prone.UpdateProneModel(ply, ply.Prone_OldModel)
