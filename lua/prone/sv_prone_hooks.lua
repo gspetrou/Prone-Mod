@@ -22,6 +22,9 @@ net.Receive("Prone_LoadPronedPlayers", function(len, ply)
 				net.WriteEntity(v)
 				net.WriteString(v.Prone_OldModel)
 				net.WriteColor(Color(v.Prone_OldColor.r, v.Prone_OldColor.g, v.Prone_OldColor.b, v.Prone_OldColor.a))
+				net.WriteString(v.Prone_OldBodyGroups)
+				net.WriteInt(v.Prone_OldSkin, 8)
+				net.WriteColor(v.Prone_OldPlayerColor:ToColor())
 			net.Send(ply)
 		end
 	end
@@ -30,6 +33,7 @@ end)
 hook.Add("PlayerDisconnected", "Prone_CleanupFakeModels", function(ply)
 	if ply.InProne then
 		net.Start("Prone_EndProne")
+			net.WriteEntity(ply)
 		net.Broadcast()
 	end
 end)

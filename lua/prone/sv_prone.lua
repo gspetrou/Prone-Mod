@@ -137,6 +137,9 @@ function prone.StartProne(ply)
 	ply.Prone_OldViewOffset = ply:GetViewOffset()
 	ply.Prone_OldViewOffsetDucked = ply:GetViewOffsetDucked()
 	ply.Prone_OldPlayerColor = ply:GetPlayerColor()
+	ply.Prone_OldPlayerColor = ply:GetPlayerColor()
+	ply.Prone_OldSkin = ply:GetSkin()
+	ply.Prone_OldBodyGroups = BodyGroups
 	ply:SetRenderMode(RENDERMODE_TRANSALPHA)
 	ply:SetColor(Color(255, 255, 255, 0))
 	------------------
@@ -157,6 +160,7 @@ function prone.StartProne(ply)
 	ply:SetProneAnimLength(length + ply.Prone_StartTime)
 	------------------
 	------------------
+
 	local weapon = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon() or false
 	if weapon then
 		local delay = length + ply.Prone_StartTime
@@ -169,12 +173,13 @@ function prone.StartProne(ply)
 	------------------
 	------------------
 
-
 	net.Start("Prone_StartProne")
 		net.WriteEntity(ply)
 		net.WriteString(ply.Prone_OldModel)
 		net.WriteColor(Color(ply.Prone_OldColor.r, ply.Prone_OldColor.g, ply.Prone_OldColor.b, ply.Prone_OldColor.a))
-		net.WriteString(BodyGroups)
+		net.WriteString(ply.Prone_OldBodyGroups)
+		net.WriteInt(ply.Prone_OldSkin, 8)
+		net.WriteColor(ply.Prone_OldPlayerColor:ToColor())
 	net.Broadcast()
 
 	ply:SetProneAnimState(0)
@@ -221,4 +226,5 @@ function prone.ExitProne(ply)
 	net.Broadcast()
 
 	ply:SetColor(ply.Prone_OldColor)
+	ply:SetSkin(ply.Prone_OldSkin)
 end

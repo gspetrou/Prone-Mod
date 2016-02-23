@@ -1,6 +1,6 @@
 -- Made by George "Stalker" Petrou, enjoy!
 
-function prone.CreateFakeProneModel(ply, model, color, bodygroups)
+function prone.CreateFakeProneModel(ply, model, color, bodygroups, plyskin, playercolor)
 	ply.ProneModel = ClientsideModel(model)
 		ply.ProneModel:SetOwner(ply)
 		ply.ProneModel:SetParent(ply)
@@ -9,13 +9,20 @@ function prone.CreateFakeProneModel(ply, model, color, bodygroups)
 		ply.ProneModel:Spawn()
 		ply.ProneModel:Activate()
 
-		ply.ProneModel:SetColor(color)
-
 		ply:SetSequence("ProneDown_Stand")
 		ply:SetCycle(0)
 		ply:SetPlaybackRate(1)
 
-		ply.ProneModel:SetBodyGroups(bodygroups)
+		ply.ProneModel:SetColor(color or color_white)
+		ply.ProneModel:SetBodyGroups(bodygroups or "")
+		ply.ProneModel:SetSkin(plyskin or 0)
+		prone.SetProneModelColor(ply.ProneModel, playercolor)
+end
+
+function prone.SetProneModelColor(model, color)
+	model.GetPlayerColor = function() 
+		return Vector(color.r/255, color.g/255, color.b/255) 
+	end
 end
 
 concommand.Add("prone", function()
@@ -32,13 +39,13 @@ net.Receive("Prone_UpdateProneModel", function()
 end)
 
 net.Receive("Prone_StartProne", function()
-	local ply, model, color, bodygroups = net.ReadEntity(), net.ReadString(), net.ReadColor(), net.ReadString()
+	local ply, model, color, bodygroups, plyskin, plycolor = net.ReadEntity(), net.ReadString(), net.ReadColor(), net.ReadString(), net.ReadInt(8), net.ReadColor()
 
 	if IsValid(ply) then
 		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))		-- For prediction
 		ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
 
-		prone.CreateFakeProneModel(ply, model, color, bodygroups)
+		prone.CreateFakeProneModel(ply, model, color, bodygroups, plyskin, plycolor)
 	end
 end)
 
@@ -56,9 +63,9 @@ net.Receive("Prone_EndProne", function()
 		end
 	else -- They disconnected or something
 		for i, v in ipairs(ents.FindByClass("class C_BaseFlex")) do
-		local owner = v:GetOwner()
+			local owner = v:GetOwner()
 
-		if not IsValid(owner) then
+			if not IsValid(owner) then
 				v:Remove()
 				v = nil
 			end
