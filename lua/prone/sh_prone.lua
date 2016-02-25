@@ -7,21 +7,21 @@ local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
 local PLY = FindMetaTable("Player")
 
 function PLY:IsProne()
-	return self:GetNW2Bool("prone_isprone")
+	return self:GetNWBool("prone_isprone")
 end
 
 function PLY:GetProneAnimState()
-	return self:GetNW2Int("prone_animstate")
+	return self:GetNWInt("prone_animstate")
 end
 
 function PLY:SetProneAnimState(state)
-	self:SetNW2Int("prone_animstate", state)
+	self:SetNWInt("prone_animstate", state)
 end
 
 function PLY:GetProneAnimLength()
-	return self:GetNW2Float("prone_animlength")
+	return self:GetNWFloat("prone_animlength")
 end
 
 function PLY:SetProneAnimLength(len)	-- Used for get up/get down animations
-	self:SetNW2Float("prone_animlength", len)
+	self:SetNWFloat("prone_animlength", len)
 end

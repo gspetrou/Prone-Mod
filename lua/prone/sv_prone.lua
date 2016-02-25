@@ -118,7 +118,7 @@ end
 function prone.StartProne(ply)
 	if not IsValid(ply) then return end
 
-	ply:SetNW2Bool("prone_isprone", true)
+	ply:SetNWBool("prone_isprone", true)
 
 	ply.InProne = true
 	ply.Prone_StartTime = CurTime()
@@ -210,7 +210,7 @@ end
 function prone.ExitProne(ply)
 	if not IsValid(ply) then return end
 
-	ply:SetNW2Bool("prone_isprone", false)
+	ply:SetNWBool("prone_isprone", false)
 	ply.InProne = false
 
 	ply:SetModel(ply.Prone_OldModel)
