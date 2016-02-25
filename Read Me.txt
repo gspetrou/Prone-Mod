@@ -5,6 +5,10 @@ Created by Stalker - http://steamcommunity.com/profiles/76561197996451757/
 MAKE SURE YOU INSTALL THE WORKSHOP MODELS:
 http://steamcommunity.com/sharedfiles/filedetails/?id=609281761
 
+ClockWork Support:
+	Download this file and check its readme:
+	https://www.dropbox.com/s/ttekucpd5uld87q/ClockWork%20Support.zip
+
 Message to reader:
 	If you intend on leaking this addon I can't stop you. Although it is a compliment to see people trying
 	to get their hands on my code it is also shitty because well, you're stealing it from me. All I ask is that before
@@ -27,11 +31,25 @@ Lua Documentation:
 
 Changelog:
 
+	1.3.3
+		- Fixes bug with PlayerColor and Skins on connect
+		- Fixes kicking while prone bug for sure
+		- Switch to NW vars instead of NW2 vars
+		- Fixed the FallOver feature with ClockWork (included in seperate link, check FAQ)
+	1.3.2
+		- Player skin support
+		- PlayerColor support
+		Big thanks to Bull for this update!
+	1.3.1
+		- Fixes oversight with changing models
+		- Added bodygroup support for real
 	1.3.0
 		- Added body group support when entering prone
 		- Fixed speed bug
 		- Added warnings if you try to use the addon without the prone models on the server
 		- Fixed bug with restricting moving and shooting
+		- Fixed NutScript bug with changing jobs
+		- ClockWork support
 		- More optimizations
 	1.2.1
 		- Fixes issues with changing job in DarkRP
