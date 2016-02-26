@@ -32,7 +32,6 @@ function PLUGIN:PlayerRagdolled(ply, state, ragdollInfo)
 	if ply:IsProne() then
 		ragdollInfo.entity:SetModel(ply.Prone_OldModel)
 		ragdollInfo.entity:GetPhysicsObject():EnableCollisions(false)
-		ply.ProneModel:SetColor(255, 255, 255, 0)
 	end
 end
 
