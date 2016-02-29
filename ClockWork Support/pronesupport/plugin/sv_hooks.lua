@@ -7,7 +7,16 @@ function PLUGIN:PostPlayerSpawn(ply, lightSpawn, changeClass, firstSpawn)
 				prone.EndProne(ply, true)
 			else
 				prone.UpdateProneModel(ply, ply.Prone_OldModel)
-				ply:SetModel("models/player/p_kleiner.mdl")
+
+				local function FindName(word)
+					return tobool(string.find(string.lower(model), word))
+				end
+				
+				local ProneMdl = "models/player/p_kleiner.mdl"
+				if FindName("female") or FindName("alyx") or FindName("mossman") then
+					ProneMdl = "models/player/p_alyx.mdl"	-- Doesn't make too much of a difference but why not
+				end
+				ply:SetModel(ProneMdl)
 				ply.Prone_OldColor = ply:GetColor()
 			end
 		end
@@ -20,9 +29,18 @@ function PLUGIN:PlayerModelChanged(ply, model)
 		ply.Prone_OldColor = ply:GetColor()
 		prone.UpdateProneModel(ply, ply.Prone_OldModel)
 
+		local function FindName(word)
+			return tobool(string.find(string.lower(model), word))
+		end
+
+		local ProneMdl = "models/player/p_kleiner.mdl"
+		if FindName("female") or FindName("alyx") or FindName("mossman") then
+			ProneMdl = "models/player/p_alyx.mdl"	-- Doesn't make too much of a difference but why not
+		end
+
 		timer.Simple(.1, function()
 			if ply:IsProne() then
-				ply:SetModel("models/player/p_kleiner.mdl")
+				ply:SetModel(ProneMdl)
 			end
 		end)
 	end
