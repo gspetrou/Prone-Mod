@@ -9,6 +9,7 @@ util.AddNetworkString("Prone_CantExitProne")
 util.AddNetworkString("Prone_HandleProne")
 
 local PLY = FindMetaTable("Player")
+local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
 
 -- This should be the main way players enter/exit prone. Not the other functions bellow.
 function PLY:HandleProne()
@@ -29,6 +30,12 @@ function PLY:HandleProne()
 				allowed = true
 				break
 			end
+		end
+	elseif GameMode == "prop_hunt" then
+		local preptime = GetGlobalFloat("RoundStartTime", 0) + HUNTER_BLINDLOCK_TIME
+
+		if not GetGlobalBool("InRound", false) or preptime > CurTime() or self:Team() ~= TEAM_HUNTERS then
+			return
 		end
 	end
 
