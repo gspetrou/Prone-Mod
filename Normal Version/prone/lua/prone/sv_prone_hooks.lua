@@ -3,7 +3,6 @@
 local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
 
 hook.Add("PlayerInitialSpawn", "Prone_SetupVariables", function(ply)
-	ply.Prone_LastBindKeyRelease = 0
 	ply.Prone_LastProneRequestDelay = 0
 
 	-- Without this server only variable we would have to call ply:IsProne() a lot
@@ -69,23 +68,3 @@ end)
 net.Receive("Prone_HandleProne", function(len, ply)
 	ply:HandleProne()
 end)
-
-if prone.BindKey then
-	if prone.BindKeyDoubleTap then
-		hook.Add("KeyRelease", "Prone_BindKeyRelease", function(ply, key)
-			if key == prone.BindKey then
-				if CurTime() < ply.Prone_LastBindKeyRelease then
-					ply:HandleProne()
-				else
-					ply.Prone_LastBindKeyRelease = CurTime() + 1
-				end
-			end
-		end)
-	else
-		hook.Add("KeyPress", "Prone_BindKeyPress", function(ply, key)
-			if key == prone.BindKey then
-				prone.HandleProne(ply)
-			end
-		end)
-	end
-end

@@ -11,10 +11,16 @@ prone.AlwaysAllowedRanks = {
 	"admin"
 }
 
--- Pressing this key will make the player go prone. Set to false to only make the "prone" command work.
+-- Enables a key to be clicked to go prone.
+-- Disabling this will force disable it for everyone
+-- DEFAULT: true
+prone.BindKeyEnabled = true
+
+-- Pressing this key will make the player go prone.
 -- Check this list to see the available keys (http://wiki.garrysmod.com/page/Enums/IN)
--- DEFAULT: IN_DUCK (the crouch key)
-prone.BindKey = IN_DUCK
+-- NOTE: Some keys like RCONTROL don't work. Be careful of this when setting a key.
+-- DEFAULT: KEY_LCONTROL (the crouch key)
+prone.BindKey = KEY_LCONTROL
 
 -- Should they have to double tap the prone key to go into or exit prone.
 -- DEFAULT: true

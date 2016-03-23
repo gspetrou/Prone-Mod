@@ -45,6 +45,12 @@ Lua Documentation:
 
 Changelog:
 
+	2.1.0
+		- Switched back to KEY_ enums, for real this time
+		- Added prop hunt support
+		- Added config menu (!proneconfig in chat or prone_config in console)
+		- Included a NutScript/Clockwork version in the bundle, right now it is just version 1.3.3
+		- Switched back to NW2 vars
 	2.0.1 - NOT COMPATIBLE WITH NUTSCRIPT/CLOCKWORK
 		- Fixed chat bug with DarkRP
 		- Reverted back to IN_ enums for stability
