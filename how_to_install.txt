@@ -6,3 +6,6 @@ Models by Stiffy360 - http://steamcommunity.com/profiles/76561198025319188
 
 Any gamemode EXCEPT CLOCKWORK and NUTSCRIPT:	 Use the "Normal Version"
 For Clockwork and Nutscript:	Use the "ClockWork and NutScript Version"
+
+For both versions you need the following addon installed and mounted on BOTH THE SERVER AND CLIENT:
+http://steamcommunity.com/sharedfiles/filedetails/?id=609281761
