@@ -14,6 +14,8 @@ Message to reader:
 ########################################################################
 ########################################################################
 
+Place the Prone folder into your addons folder
+
 MAKE SURE YOU INSTALL THE WORKSHOP MODELS ON THE CLIENTS AND THE SERVER:
 http://steamcommunity.com/sharedfiles/filedetails/?id=609281761
 
