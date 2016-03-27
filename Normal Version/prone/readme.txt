@@ -47,6 +47,9 @@ Lua Documentation:
 
 Changelog:
 
+	2.1.1
+		- Fixed bug with the !proneconfig command
+		- Added a Prone Config category to the sandbox Utilities tab
 	2.1.0
 		- Switched back to KEY_ enums, for real this time
 		- Added prop hunt support

@@ -45,19 +45,6 @@ function prone.ProneToggle()
 	net.SendToServer()
 end
 
-timer.Create("Prone_WaitForValidPlayers", .5, 0, function()
-	if IsValid(LocalPlayer()) then
-		timer.Simple(.25, function()
-			net.Start("Prone_PlayerFullyLoaded")
-			net.SendToServer()
-
-			GameMode = string.lower(engine.ActiveGamemode())
-
-			timer.Remove("Prone_WaitForValidPlayers")
-		end)
-	end
-end)
-
 net.Receive("Prone_LoadPronePlayersOnConnect", function()
 	local PronePlayers = net.ReadTable()
 
@@ -76,6 +63,18 @@ net.Receive("Prone_CantExitProne", function()
 		chat.AddText(Color(210, 10, 10), "There isn't enough room to stand up!")
 	else
 		self:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
+	end
+end)
+
+timer.Create("Prone_WaitForValidPlayers", .5, 0, function()
+	if IsValid(LocalPlayer()) then
+		timer.Simple(.25, function()
+			net.Start("Prone_PlayerFullyLoaded")
+			net.SendToServer()
+			GameMode = string.lower(engine.ActiveGamemode())
+
+			timer.Remove("Prone_WaitForValidPlayers")
+		end)
 	end
 end)
 
@@ -135,7 +134,32 @@ end
 concommand.Add("prone_config", function() Prone_ConfigUI() end)
 
 hook.Add("OnPlayerChat", "Prone_OpenClientConfig", function(ply, text)
-	if text == "!proneconfig" or text == "/proneconfig" then
+	if ply == LocalPlayer() and text == "!proneconfig" or text == "/proneconfig" then
 		Prone_ConfigUI()
 	end
+end)
+
+local function SandboxCPanel(panel)
+	panel:SetName("Prone Mod - Options")
+	panel:AddControl("Header", {
+		Text = "",
+		Description = "Configurable options for the Prone Mod."
+	})
+
+	panel:AddControl("Checkbox", {
+		Label = "Bind Key Enabled",
+		Command = "prone_bindkey_enabled"
+	})
+	panel:AddControl("Checkbox", {
+		Label = "Bind Key Double-Tap",
+		Command = "prone_bindkey_doubletap"
+	})
+	panel:AddControl("Numpad", {
+		Label = "Bind Key",
+		Command = "prone_bindkey"
+	})
+end
+
+hook.Add("PopulateToolMenu", "Prone_SandboxConfig", function()
+	spawnmenu.AddToolMenuOption("Utilities", "Prone Mod", "Prone Options", "Options", "", "", SandboxCPanel)
 end)
