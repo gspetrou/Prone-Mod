@@ -62,7 +62,7 @@ net.Receive("Prone_CantExitProne", function()
 	if GameMode ~= "combinecontrol" then
 		chat.AddText(Color(210, 10, 10), "There isn't enough room to stand up!")
 	else
-		self:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
+		GAMEMODE:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
 	end
 end)
 
