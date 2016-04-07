@@ -59,7 +59,7 @@ hook.Add("CalcMainActivity", "Prone_Animations", function(ply, velocity)
 				ACT = ACT_GET_DOWN_STAND --pronedown_stand
 
 				local DownVect = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 18))
-				ply:SetViewOffset(DownVect)
+				ply:SetViewOffset(DownVect)		-- This is bad, I need to change this soon to calcview
 				ply:SetViewOffsetDucked(DownVect)
 			else
 				ply:SetProneAnimationState(1)
