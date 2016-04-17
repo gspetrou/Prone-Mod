@@ -39,14 +39,18 @@ Lua Documentation:
 	Hooks:
 	CanPlayerEnterProne(Player)		-- Server. Called in Player:HandleProne(). Return false to prevent them from going prone.
 	CanPlayerLeaveProne(Player)		-- Server. Called in Player:HandleProne(). Return false to prevent them from exitting prone. Player:CanExitProne() is already called on them before this.
-	PlayerEnteredProne(Player)		-- Server. Called just as soon as the player starts getting down.
-	PlayerExittedProne(Player)		-- Server. Called just as the player finished getting up.
+	PlayerEnteredProne(Player, length)		-- Server. Called just as soon as the player starts getting down. Second arg is the time to get down.
+	PlayerExittedProne(Player, length)		-- Server. Called just as the player finished getting up. Second arg is the time to get up.
 
 ########################################################################
 ########################################################################
 
 Changelog:
 
+	2.2.0
+		- Added "length" arguement to the PlayerEnteredProne and PlayerExittedProne hooks
+		- Fixed major issue with restricting by rank
+		- Added config options for playing sounds when entering, exitting, or moving while prone
 	2.1.1
 		- Fixed bug with the !proneconfig command
 		- Added a Prone Config category to the sandbox Utilities tab

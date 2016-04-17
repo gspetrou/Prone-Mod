@@ -31,9 +31,9 @@ if prone.GetUpDownSound then
 	sound.Add({
 		name = "prone.GetUpDownSound",
 		channel = CHAN_AUTO,
-		volume = SNDLVL_TALKING,
-		level = SNDLVL_TALKING,
-		pitch = PITCH_NORM,
+		volume = 0.5,
+		level = 55,
+		pitch = {95, 110},
 		sound = prone.GetUpDownSound
 	})
 end
@@ -42,9 +42,9 @@ if prone.GetUpDownSound then
 	sound.Add({
 		name = "prone.MoveSound",
 		channel = CHAN_AUTO,
-		volume = SNDLVL_TALKING,
-		level = SNDLVL_TALKING,
-		pitch = PITCH_NORM,
+		volume = 0.5,
+		level = 55,
+		pitch = {95, 110},
 		sound = prone.MoveSound
 	})
 end

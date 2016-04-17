@@ -2,8 +2,8 @@
 /////  General  /////
 /////////////////////
 -- Set to true so that anybody can go prone no matter what rank or job they are.
--- DEFAULT: false
-prone.AllowAllProne = false
+-- DEFAULT: true
+prone.AllowAllProne = true
 
 -- Any players with a usergroup in this table will be allowed to go prone no matter what.
 prone.AlwaysAllowedRanks = {
