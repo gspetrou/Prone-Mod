@@ -18,16 +18,15 @@ function PLY:HandleProne()
 	end
 
 	self.Prone_LastProneRequestDelay = CurTime() + 2
-
-	local allowed = true
+	self.allowedprone = true
 
 	if GameMode == "darkrp" and prone.RestrictByJob then
 		local PlyJob = string.lower(self:getJobTable().name)
-		allowed = false
+		self.allowedprone = false
 
 		for i, v in ipairs(prone.AllowedJobs) do
 			if PlyJob == string.lower(v) then
-				allowed = true
+				self.allowedprone = true
 				break
 			end
 		end
@@ -39,19 +38,26 @@ function PLY:HandleProne()
 		end
 	end
 
-	if not self.AllowAllProne and #prone.AlwaysAllowedRanks > 0 then
-		local PlyRank = string.lower(self:GetUserGroup())
-		for i, v in ipairs(prone.AlwaysAllowedRanks) do
-			if PlyRank == string.lower(v) then
-				allowed = true
-				break
+	if not prone.AllowAllProne then
+		if #prone.AlwaysAllowedRanks > 0 then
+			self.allowedprone = false
+
+			local PlyRank = string.lower(self:GetUserGroup())
+			for i, v in ipairs(prone.AlwaysAllowedRanks) do
+				if PlyRank == string.lower(v) then
+					self.allowedprone = true
+				end
+			end
+
+			if not self.allowedprone then
+				self:PrintMessage(HUD_PRINTTALK, "You do not have permission to go prone.")
 			end
 		end
 	else
-		allowed = true
+		self.allowedprone = true
 	end
 
-	if allowed then
+	if self.allowedprone then
 		if not self.InProne then
 			local HookResult = hook.Call("CanPlayerEnterProne", nil, self)
 			HookResult = (HookResult == nil) and true or HookResult
