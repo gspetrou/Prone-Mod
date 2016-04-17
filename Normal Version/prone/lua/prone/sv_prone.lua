@@ -121,13 +121,19 @@ function prone.StartProne(ply)
 		weapon:SetNextSecondaryFire(ply.Prone_GetDownTime)
 	end
 
+	if prone.GetUpDownSound then
+		ply:EmitSound("prone.GetUpDownSound")
+	end
+
 	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))
 	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
+	------------------
+	------------------
 
 	ply:AnimRestartMainSequence()
 
 	ply:SetProneAnimationState(0)
-	hook.Call("PlayerEnteredProne", nil, ply)
+	hook.Call("PlayerEnteredProne", nil, ply, length)
 end
 
 -- Handles the getting up animation (unless it is forced), then goes over to ExitProne to actually exit prone
@@ -135,12 +141,14 @@ function prone.EndProne(ply, forced)
 	if not IsValid(ply) then return end
 	ply.Prone_EndTime = CurTime()
 
+	local length = 0
+
 	if not forced then
 		net.Start("Prone_EndProneAnimation")
 			net.WriteEntity(ply)
 		net.Broadcast()
 
-		local length = ply:SequenceDuration(ply:SelectWeightedSequence(ACT_GET_UP_STAND))
+		length = ply:SequenceDuration(ply:SelectWeightedSequence(ACT_GET_UP_STAND))
 		ply.Prone_GetUpTime = length + ply.Prone_EndTime
 		ply:SetProneAnimationLength(ply.Prone_GetUpTime)
 
@@ -150,11 +158,20 @@ function prone.EndProne(ply, forced)
 			weapon:SetNextSecondaryFire(ply.Prone_GetUpTime)
 		end
 
+		if prone.MoveSound and timer.Exists("prone_walksound_"..ply:SteamID()) then
+			timer.Remove("prone_walksound_"..ply:SteamID())
+		end
+		if prone.GetUpDownSound then
+			ply:EmitSound("prone.GetUpDownSound")
+		end
+
 		ply:AnimRestartMainSequence()
 		ply:SetProneAnimationState(2)
 	else
 		prone.ExitProne(ply)
 	end
+
+	hook.Call("PlayerExittedProne", nil, ply, length)
 end
 
 function prone.ExitProne(ply)
@@ -171,5 +188,4 @@ function prone.ExitProne(ply)
 	net.Broadcast()
 
 	ply:SetProneAnimationState(3)
-	hook.Call("PlayerExittedProne", nil, ply)
 end

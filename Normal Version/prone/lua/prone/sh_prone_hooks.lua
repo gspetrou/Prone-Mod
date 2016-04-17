@@ -63,6 +63,13 @@ hook.Add("CalcMainActivity", "Prone_Animations", function(ply, velocity)
 				ply:SetViewOffsetDucked(DownVect)
 			else
 				ply:SetProneAnimationState(1)
+				if SERVER and prone.MoveSound then
+					timer.Create("prone_walksound_"..ply:SteamID(), prone.StepSoundTime, 0, function()
+						if ply:GetVelocity():Length() >= 20 then	-- We can't use the length variable here for some reaason, not sure why
+							ply:EmitSound("prone.MoveSound")
+						end
+					end)
+				end
 			end
 		elseif AnimState == 2 then -- Getting up
 			if ply:GetProneAnimationLength() >= CurTime() then

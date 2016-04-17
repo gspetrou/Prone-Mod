@@ -26,3 +26,25 @@ end
 function PLY:GetProneAnimationLength()
 	return self:GetNW2Float("prone_animlength")
 end
+
+if prone.GetUpDownSound then
+	sound.Add({
+		name = "prone.GetUpDownSound",
+		channel = CHAN_AUTO,
+		volume = SNDLVL_TALKING,
+		level = SNDLVL_TALKING,
+		pitch = PITCH_NORM,
+		sound = prone.GetUpDownSound
+	})
+end
+
+if prone.GetUpDownSound then
+	sound.Add({
+		name = "prone.MoveSound",
+		channel = CHAN_AUTO,
+		volume = SNDLVL_TALKING,
+		level = SNDLVL_TALKING,
+		pitch = PITCH_NORM,
+		sound = prone.MoveSound
+	})
+end
