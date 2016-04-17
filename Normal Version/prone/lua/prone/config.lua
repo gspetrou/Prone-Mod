@@ -60,6 +60,22 @@ prone.WhitelistedWeapons = {
 	weapon_ttt_unarmed		= true		-- (TTT)
 }
 
+-- This sound will be played the the prone player gets up or gets down.
+-- Set to false to disable. Example: prone.GetUpDownSound = "npc/metropolice/gear1.wav"
+-- Make sure the clients download this file!
+-- DEFAULT: false
+prone.GetUpDownSound = false
+
+-- This sound will be played each "step" while the player is prone.
+-- Set to false to disable. Example: prone.MoveSound = "npc/metropolice/die1.wav"
+-- Make sure the clients download this file!
+-- DEFAULT: false
+prone.MoveSound = false
+
+-- How often the prone.MoveSound should be played. You should mess with this yourself.
+-- DEFAULT: 0.5 (seconds)
+prone.StepSoundTime = .75
+
 
 ///////////////////////////
 ////  DarkRP Specific  ////
@@ -79,6 +95,7 @@ prone.AllowedJobs = {
 	"Mob Boss",
 	"Hobo"
 }
+
 
 -- NOTICE: You should only really look past here if you know what you're doing.
 
