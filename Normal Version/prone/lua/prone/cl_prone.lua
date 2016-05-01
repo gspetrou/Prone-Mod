@@ -1,11 +1,6 @@
 -- Made by George "Stalker" Petrou, enjoy!
 
 local GameMode
-local Prone_LastBindKeyRelease = 0
-
-CreateClientConVar("prone_bindkey_enabled", "1", true, false, "Set to 1 to enable pressing a key to go prone.")
-CreateClientConVar("prone_bindkey_doubletap", "1", true, false, "If this is set to 1 then you must double tap the prone bind key.")
-CreateClientConVar("prone_bindkey", tostring(prone.BindKey), true, false, "Set this to a IN_ enum number to change the prone bind key.")
 
 net.Receive("Prone_StartProne", function()
 	local ply = net.ReadEntity()
@@ -76,90 +71,4 @@ timer.Create("Prone_WaitForValidPlayers", .5, 0, function()
 			timer.Remove("Prone_WaitForValidPlayers")
 		end)
 	end
-end)
-
-if prone.BindKeyEnabled then
-	hook.Add("Move", "Prone_BindKey", function()
-		if not (gui.IsConsoleVisible() or gui.IsGameUIVisible() or vgui.GetKeyboardFocus()) then
-			if input.WasKeyPressed(prone.BindKey) and GetConVar("prone_bindkey_enabled"):GetInt() >= 1 then
-				if GetConVar("prone_bindkey_doubletap"):GetInt() >= 1 then
-					if CurTime() < Prone_LastBindKeyRelease then
-						prone.ProneToggle()
-					else
-						Prone_LastBindKeyRelease = CurTime() + 1
-					end
-				else
-					prone.ProneToggle()
-				end
-			end
-		end
-	end)
-end
-
-cvars.AddChangeCallback("prone_bindkey", function(cvar, oldVal, newVal)
-	prone.BindKey = newVal
-end)
-
-local function Prone_ConfigUI()
-	local frame = vgui.Create("DFrame")
-	frame:SetSize(230, 140)
-	frame:Center()
-	frame:SetTitle("Prone Mod Config")
-	frame:SetDraggable(true)
-	frame:MakePopup()
-
-	local toggle = vgui.Create("DCheckBoxLabel", frame)
-	toggle:SetPos(15, 35)
-	toggle:SetText("Enable the bind key")
-	toggle:SizeToContents()
-	toggle:SetValue(GetConVar("prone_bindkey_enabled"):GetInt())
-	toggle:SetConVar("prone_bindkey_enabled")
-
-	local doubletap = vgui.Create("DCheckBoxLabel", frame)
-	doubletap:SetPos(15, 55)
-	doubletap:SetText("Double tap the bind key to go prone")
-	doubletap:SizeToContents()
-	doubletap:SetValue(GetConVar("prone_bindkey_doubletap"):GetInt())
-	doubletap:SetConVar("prone_bindkey_doubletap")
-
-	local binder = vgui.Create("DBinder", frame)
-	binder:SetSize(200, 50)
-	binder:SetPos(15, 80)
-	binder:SetSelected(prone.BindKey)
-	function binder:SetSelectedNumber(num)
-		self.m_iSelectedNumber = num
-		GetConVar("prone_bindkey"):SetInt(num == 84 and prone.BindKey or num)	-- RControl doesn't work
-	end
-end
-concommand.Add("prone_config", function() Prone_ConfigUI() end)
-
-hook.Add("OnPlayerChat", "Prone_OpenClientConfig", function(ply, text)
-	if ply == LocalPlayer() and text == "!proneconfig" or text == "/proneconfig" then
-		Prone_ConfigUI()
-	end
-end)
-
-local function SandboxCPanel(panel)
-	panel:SetName("Prone Mod - Options")
-	panel:AddControl("Header", {
-		Text = "",
-		Description = "Configurable options for the Prone Mod."
-	})
-
-	panel:AddControl("Checkbox", {
-		Label = "Bind Key Enabled",
-		Command = "prone_bindkey_enabled"
-	})
-	panel:AddControl("Checkbox", {
-		Label = "Bind Key Double-Tap",
-		Command = "prone_bindkey_doubletap"
-	})
-	panel:AddControl("Numpad", {
-		Label = "Bind Key",
-		Command = "prone_bindkey"
-	})
-end
-
-hook.Add("PopulateToolMenu", "Prone_SandboxConfig", function()
-	spawnmenu.AddToolMenuOption("Utilities", "Prone Mod", "Prone Options", "Options", "", "", SandboxCPanel)
 end)

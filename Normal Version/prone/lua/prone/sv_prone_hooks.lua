@@ -1,9 +1,8 @@
 -- Made by George "Stalker" Petrou, enjoy!
 
-local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
-
 hook.Add("PlayerInitialSpawn", "Prone_SetupVariables", function(ply)
 	ply.Prone_LastProneRequestDelay = 0
+	ply.Prone_LastBindKeyPress = 0
 
 	-- Without this server only variable we would have to call ply:IsProne() a lot
 	-- which is a bit more expensive
@@ -48,6 +47,27 @@ if prone.ChatCommand then
 			end
 		end
 	end)
+end
+
+if prone.BindKey then
+	if prone.BindKeyDoubleTap then
+		hook.Add("KeyPress", "Prone_BindKeySingleTap", function(ply, key)
+			if key == prone.BindKey then
+				if ply.Prone_LastBindKeyPress < CurTime() then
+					ply.Prone_LastBindKeyPress = CurTime() + .8
+				else
+					ply:HandleProne()
+					ply.Prone_LastBindKeyPress = 0
+				end
+			end
+		end)
+	else
+		hook.Add("KeyPress", "Prone_BindKeySingleTap", function(ply, key)
+			if key == prone.BindKey then
+				ply:HandleProne()
+			end
+		end)
+	end
 end
 
 net.Receive("Prone_PlayerFullyLoaded", function(len, ply)
