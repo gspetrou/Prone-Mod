@@ -2,6 +2,8 @@
 
 local GameMode
 
+CreateClientConVar("prone_bindkey_enabled", "1", true, true, "If set to 0 clicking the prone bind key wont do anything.")
+
 net.Receive("Prone_StartProne", function()
 	local ply = net.ReadEntity()
 

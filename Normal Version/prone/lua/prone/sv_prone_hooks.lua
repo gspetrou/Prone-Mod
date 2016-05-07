@@ -51,19 +51,21 @@ end
 
 if prone.BindKey then
 	if prone.BindKeyDoubleTap then
-		hook.Add("KeyPress", "Prone_BindKeySingleTap", function(ply, key)
-			if key == prone.BindKey then
-				if ply.Prone_LastBindKeyPress < CurTime() then
-					ply.Prone_LastBindKeyPress = CurTime() + .8
-				else
-					ply:HandleProne()
-					ply.Prone_LastBindKeyPress = 0
+		hook.Add("KeyPress", "Prone_BindKeyDoubleTap", function(ply, key)
+			if ply:GetInfoNum("prone_bindkey_enabled", 1) == 1 then
+				if key == prone.BindKey then
+					if ply.Prone_LastBindKeyPress < CurTime() then
+						ply.Prone_LastBindKeyPress = CurTime() + .8
+					else
+						ply:HandleProne()
+						ply.Prone_LastBindKeyPress = 0
+					end
 				end
 			end
 		end)
 	else
 		hook.Add("KeyPress", "Prone_BindKeySingleTap", function(ply, key)
-			if key == prone.BindKey then
+			if ply:GetInfoNum("prone_bindkey_enabled", 1) == 1 and key == prone.BindKey then
 				ply:HandleProne()
 			end
 		end)

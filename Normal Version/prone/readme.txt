@@ -47,6 +47,10 @@ Lua Documentation:
 
 Changelog:
 
+	2.2.2
+		- Added prone_bindkey_enabled for clients. If set to 0 clicking the bindkey wont set the player prone
+	2.2.1
+		- Removed !proneconfig and reverted back to IN enums, they were unreliable
 	2.2.0
 		- Added "length" arguement to the PlayerEnteredProne and PlayerExittedProne hooks
 		- Fixed major issue with restricting by rank
