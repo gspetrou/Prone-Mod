@@ -54,7 +54,7 @@ if prone.BindKey then
 		hook.Add("KeyPress", "Prone_BindKeyDoubleTap", function(ply, key)
 			if ply:GetInfoNum("prone_bindkey_enabled", 1) == 1 then
 				if key == prone.BindKey then
-					if ply.Prone_LastBindKeyPress < CurTime() then
+					if (ply.Prone_LastBindKeyPress or 0) < CurTime() then
 						ply.Prone_LastBindKeyPress = CurTime() + .8
 					else
 						ply:HandleProne()
