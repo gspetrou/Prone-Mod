@@ -9,7 +9,7 @@ function PLUGIN:PostPlayerSpawn(ply, lightSpawn, changeClass, firstSpawn)
 				prone.UpdateProneModel(ply, ply.Prone_OldModel)
 
 				local function FindName(word)
-					return tobool(string.find(string.lower(model), word))
+					return tobool(string.find(string.lower(ply.Prone_OldModel), word))
 				end
 				
 				local ProneMdl = "models/player/p_kleiner.mdl"
@@ -56,6 +56,8 @@ end
 function PLUGIN:PlayerUnragdolled(ply, state, ragdollInfo)
 	if ply:IsProne() then
 		prone.EndProne(ply, true)
-		ply.ProneModel:SetColor(ply.Prone_OldColor)
+		if IsValid(ply.ProneModel) then
+			ply.ProneModel:SetColor(ply.Prone_OldColor)
+		end
 	end
 end
