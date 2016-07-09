@@ -47,6 +47,9 @@ Lua Documentation:
 
 Changelog:
 
+	2.2.3
+		- [Clockwork] Minor playermodel string bug fixes
+		- Fixed rare pronebutton error
 	2.2.2
 		- Added prone_bindkey_enabled for clients. If set to 0 clicking the bindkey wont set the player prone
 	2.2.1

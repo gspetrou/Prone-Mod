@@ -49,6 +49,8 @@ Lua Documentation:
 
 Changelog:
 
+	1.3.4
+		- Minor playermodel string bug fix
 	1.3.3
 		- Fixes bug with PlayerColor and Skins on connect
 		- Fixes kicking while prone bug for sure

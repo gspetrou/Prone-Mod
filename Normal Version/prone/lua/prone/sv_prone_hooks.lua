@@ -2,7 +2,7 @@
 
 hook.Add("PlayerInitialSpawn", "Prone_SetupVariables", function(ply)
 	ply.Prone_LastProneRequestDelay = 0
-	ply.Prone_LastBindKeyPress = 0
+	ply.Prone_LastBindKeyPress = ply.Prone_LastBindKeyPress or 0
 
 	-- Without this server only variable we would have to call ply:IsProne() a lot
 	-- which is a bit more expensive
