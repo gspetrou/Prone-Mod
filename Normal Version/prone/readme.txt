@@ -47,6 +47,9 @@ Lua Documentation:
 
 Changelog:
 
+	2.2.4
+		- Added option to exit prone by pressing space
+		- More optimizations
 	2.2.3
 		- [Clockwork] Minor playermodel string bug fixes
 		- Fixed rare pronebutton error

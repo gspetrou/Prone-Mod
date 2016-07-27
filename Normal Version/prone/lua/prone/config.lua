@@ -26,6 +26,14 @@ prone.BindKey = IN_DUCK
 -- DEFAULT: true
 prone.BindKeyDoubleTap = true
 
+-- Can the player simply press the jump key to get up if they are prone.
+-- DEFAULT: true
+prone.JumpToGetUp = true
+
+-- Should they double tap jump to get up
+-- DEFAULT: false
+prone.JumpToGetUpDoubleTap = true
+
 -- The chat command that could toggle prone for a player. This is prefixed by a "/" or a "!".
 -- That means if prone.ChatCommand = "prone" then !prone and /prone works. "/" will be hidden from chat, "!" wont be.
 -- Set to false to disable

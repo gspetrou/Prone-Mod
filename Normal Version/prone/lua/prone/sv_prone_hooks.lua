@@ -60,12 +60,24 @@ if prone.BindKey then
 						ply:HandleProne()
 						ply.Prone_LastBindKeyPress = 0
 					end
+				elseif prone.JumpToGetUp and key == IN_JUMP and ply.InProne then
+					if prone.JumpToGetUpDoubleTap then
+						if (ply.Prone_LastBindKeyPress or 0) < CurTime() then
+							ply.Prone_LastBindKeyPress = CurTime() + .8
+						else
+							ply:HandleProne()
+							ply.Prone_LastBindKeyPress = 0
+						end
+					else
+						ply:HandleProne()
+						ply.Prone_LastBindKeyPress = 0
+					end
 				end
 			end
 		end)
 	else
 		hook.Add("KeyPress", "Prone_BindKeySingleTap", function(ply, key)
-			if ply:GetInfoNum("prone_bindkey_enabled", 1) == 1 and key == prone.BindKey then
+			if (ply:GetInfoNum("prone_bindkey_enabled", 1) == 1 and key == prone.BindKey) or prone.JumpToGetUp then
 				ply:HandleProne()
 			end
 		end)
