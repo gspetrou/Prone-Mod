@@ -47,6 +47,8 @@ Lua Documentation:
 
 Changelog:
 
+	2.2.5
+		- Fixed bug with view transitions caused by update 2.2.4
 	2.2.4
 		- Added option to exit prone by pressing space
 		- More optimizations
