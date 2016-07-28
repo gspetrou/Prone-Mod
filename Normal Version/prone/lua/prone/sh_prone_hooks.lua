@@ -56,11 +56,11 @@ hook.Add("CalcMainActivity", "Prone_Animations", function(ply, velocity)
 		elseif AnimState == 0 then -- Getting down
 			if ply:GetProneAnimationLength() >= CurTime() then
 				ACT = ACT_GET_DOWN_STAND --pronedown_stand
-/*
+
 				local DownVect = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 18))
 				ply:SetViewOffset(DownVect)		-- This is bad, I need to change this soon to calcview
 				ply:SetViewOffsetDucked(DownVect)
-*/
+
 			else
 				ply:SetProneAnimationState(1)
 				if SERVER and prone.MoveSound then
@@ -74,11 +74,11 @@ hook.Add("CalcMainActivity", "Prone_Animations", function(ply, velocity)
 		elseif AnimState == 2 then -- Getting up
 			if ply:GetProneAnimationLength() >= CurTime() then
 				ACT = ACT_GET_UP_STAND --proneup_stand
-/*
+
 				local DownVect = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))
 				ply:SetViewOffset(DownVect)
 				ply:SetViewOffsetDucked(DownVect)
-*/
+
 			else
 				ply:SetProneAnimationState(3)
 			end
