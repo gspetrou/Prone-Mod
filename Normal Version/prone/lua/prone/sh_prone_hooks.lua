@@ -24,7 +24,7 @@ hook.Add("UpdateAnimation", "Prone_Animations", function(ply, velocity, maxSeqGr
 
 		if CLIENT then
 			local EyeAngP = ply:EyeAngles().p 
-			if not (EyeAngP >= 89) then
+			if EyeAngP < 89 then
 				ply:SetPoseParameter("body_pitch", math.Clamp(EyeAngP * -1, -10, 50))
 				ply:SetPoseParameter("body_yaw", 0)
 				ply:InvalidateBoneCache()
@@ -122,7 +122,7 @@ if not prone.CanMoveAndShoot then
 						ShouldStopMovement = false
 					end
 
-					if ShouldStopMovement or WepClass == "weapon_crowbar" then
+					if (ShouldStopMovement or WepClass == "weapon_crowbar") and ply:IsOnGround() then
 						mv:SetForwardSpeed(0)
 						mv:SetSideSpeed(0)
 						mv:SetVelocity(Vector(0, 0, 0))
