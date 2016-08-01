@@ -47,6 +47,8 @@ Lua Documentation:
 
 Changelog:
 
+	2.2.6
+		- Fixed falling while prone and shooting causing you to freeze in the air
 	2.2.5
 		- Fixed bug with view transitions caused by update 2.2.4
 	2.2.4
