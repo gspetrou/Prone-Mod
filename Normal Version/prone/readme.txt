@@ -46,7 +46,8 @@ Lua Documentation:
 ########################################################################
 
 Changelog:
-
+	2.2.7
+		- Clockwork/Nutscript Update
 	2.2.6
 		- Fixed falling while prone and shooting causing you to freeze in the air
 	2.2.5
