@@ -63,6 +63,10 @@ function PLY:HandleProne()
 		return
 	end
 
+	if isfunction(self.GetSharedVar) and self:GetSharedVar("FallenOver") then
+		return
+	end
+
 	if not self.AllowAllProne then
 		if #prone.AlwaysAllowedRanks > 0 then
 			local PlyRank = string.lower(self:GetUserGroup())

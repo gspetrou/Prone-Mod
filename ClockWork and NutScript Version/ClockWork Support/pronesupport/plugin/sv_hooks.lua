@@ -16,6 +16,7 @@ function PLUGIN:PostPlayerSpawn(ply, lightSpawn, changeClass, firstSpawn)
 				if FindName("female") or FindName("alyx") or FindName("mossman") then
 					ProneMdl = "models/player/p_alyx.mdl"	-- Doesn't make too much of a difference but why not
 				end
+				print(ProneMdl)
 				ply:SetModel(ProneMdl)
 				ply.Prone_OldColor = ply:GetColor()
 			end
@@ -40,6 +41,7 @@ function PLUGIN:PlayerModelChanged(ply, model)
 
 		timer.Simple(.1, function()
 			if ply:IsProne() then
+				print(ProneMdl)
 				ply:SetModel(ProneMdl)
 			end
 		end)
@@ -50,14 +52,7 @@ function PLUGIN:PlayerRagdolled(ply, state, ragdollInfo)
 	if ply:IsProne() then
 		ragdollInfo.entity:SetModel(ply.Prone_OldModel)
 		ragdollInfo.entity:GetPhysicsObject():EnableCollisions(false)
-	end
-end
 
-function PLUGIN:PlayerUnragdolled(ply, state, ragdollInfo)
-	if ply:IsProne() then
 		prone.EndProne(ply, true)
-		if IsValid(ply.ProneModel) then
-			ply.ProneModel:SetColor(ply.Prone_OldColor)
-		end
 	end
 end

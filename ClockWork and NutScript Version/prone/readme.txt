@@ -49,6 +49,8 @@ Lua Documentation:
 
 Changelog:
 
+	1.3.5
+		- Fixed CharFallOver bug
 	1.3.4
 		- Minor playermodel string bug fix
 	1.3.3
