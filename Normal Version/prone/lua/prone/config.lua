@@ -104,8 +104,24 @@ prone.AllowedJobs = {
 	"Hobo"
 }
 
+-- Instead of prone.RestrictByJob being a whitelist
+-- set this to true to make it a blacklist instead.
+-- DEFAULT: false
+prone.JobsIsBlacklist = false
+
 
 -- NOTICE: You should only really look past here if you know what you're doing.
+
+//////////////////////
+/////  Advanced  /////
+//////////////////////
+-- Set the hull height of the player while they are prone.
+-- DEFAULT: 24
+prone.HullHeight = 24
+
+-- How fast can the player move when they are going into or exitting prone.
+-- DEFAULT: 0
+prone.GetUpOrDownSpeed = 0
 
 ///////////////////////
 ////  Animations  /////

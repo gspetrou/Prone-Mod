@@ -46,6 +46,12 @@ Lua Documentation:
 ########################################################################
 
 Changelog:
+	2.2.9
+		- Added config option for setting hull height
+		- Config option for moving while entering or exitting prone
+		- Option to make the darkrp jobs whitelist into a blacklist
+	2.2.8
+		- Clockwork update for female player models
 	2.2.7
 		- Clockwork/Nutscript Update
 	2.2.6

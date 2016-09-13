@@ -140,8 +140,8 @@ hook.Add("SetupMove", "Prone_PreventJumpWehenProne", function(ply, cmd)
 		end
 
 		if ply:GetProneAnimationLength() >= CurTime() then
-			cmd:SetForwardSpeed(0)
-			cmd:SetSideSpeed(0)
+			cmd:SetForwardSpeed(prone.GetUpOrDownSpeed)
+			cmd:SetSideSpeed(prone.GetUpOrDownSpeed)
 		else
 			cmd:SetMaxClientSpeed(prone.ProneSpeed or 50)
 		end

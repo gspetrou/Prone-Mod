@@ -10,8 +10,8 @@ net.Receive("Prone_StartProne", function()
 	if IsValid(ply) then
 		ply:AnimRestartMainSequence()
 
-		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))		-- For prediction
-		ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
+		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))		-- For prediction
+		ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))
 	end
 end)
 
@@ -49,8 +49,8 @@ net.Receive("Prone_LoadPronePlayersOnConnect", function()
 		local ply = Entity(v)
 
 		if IsValid(ply) then
-			ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))		-- For prediction
-			ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
+			ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))		-- For prediction
+			ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))
 		end
 	end
 end)

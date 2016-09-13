@@ -26,7 +26,7 @@ function PLY:HandleProne()
 
 		for i, v in ipairs(prone.AllowedJobs) do
 			if PlyJob == string.lower(v) then
-				self.allowedprone = true
+				self.allowedprone = not prone.JobsIsBlacklist
 				break
 			end
 		end
@@ -125,8 +125,8 @@ function prone.StartProne(ply)
 		ply:EmitSound("prone.GetUpDownSound")
 	end
 
-	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))
-	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
+	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))
+	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))
 	------------------
 	------------------
 
