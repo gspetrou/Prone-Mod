@@ -21,7 +21,7 @@ end
 
 function prone.SetProneModelColor(model, color)
 	model.GetPlayerColor = function() 
-		return Vector(color.r/255, color.g/255, color.b/255) 
+		return Vector(color.r/255, color.g/255, color.b/255)
 	end
 end
 
@@ -42,8 +42,8 @@ net.Receive("Prone_StartProne", function()
 	local ply, model, color, bodygroups, plyskin, plycolor = net.ReadEntity(), net.ReadString(), net.ReadColor(), net.ReadString(), net.ReadInt(8), net.ReadColor()
 
 	if IsValid(ply) then
-		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))		-- For prediction
-		ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
+		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))		-- For prediction
+		ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))
 
 		prone.CreateFakeProneModel(ply, model, color, bodygroups, plyskin, plycolor)
 	end

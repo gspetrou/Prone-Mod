@@ -49,6 +49,13 @@ hook.Add("UpdateAnimation", "Prone_Animations", function(ply, velocity, maxSeqGr
 				ply:SetViewOffsetDucked(DownVect)
 			else
 				ply:SetProneAnimState(1)
+				if SERVER and prone.MoveSound then
+					timer.Create("prone_walksound_"..ply:SteamID(), prone.StepSoundTime, 0, function()
+						if ply:GetVelocity():Length() >= 20 then	-- We can't use the length variable here for some reaason, not sure why
+							ply:EmitSound("prone.MoveSound")
+						end
+					end)
+				end
 			end
 		elseif AnimState == 2 then -- Getting Up
 			if ply:GetProneAnimLength() + 0.1 > CurTime() then
@@ -81,7 +88,12 @@ hook.Add("SetupMove", "Prone_PreventJumpWehenProne", function(ply, cmd)
 			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))	-- Disables jumping
 		end
 
-		cmd:SetMaxClientSpeed(prone.ProneSpeed)
+		if ply:GetProneAnimLength() >= CurTime() then
+			cmd:SetForwardSpeed(prone.GetUpOrDownSpeed)
+			cmd:SetSideSpeed(prone.GetUpOrDownSpeed)
+		else
+			cmd:SetMaxClientSpeed(prone.ProneSpeed or 50)
+		end
 	end
 end)
 

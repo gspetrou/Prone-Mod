@@ -14,7 +14,7 @@ if not (util.IsValidModel("models/player/dod_player_shared.mdl") and util.IsVali
 	hook.Add("InitPostEntity", "Prone_NotifyMissingModels", function()
 		timer.Create("Prone_NoProneModelWarning", 10, 0, function()
 			local allplys = player.GetAll()
-			
+		
 			for i, v in ipairs(allplys) do
 				if v:GetUserGroup() ~= "user" then
 					net.Start("Prone_SendWarningText")
@@ -39,11 +39,11 @@ function PLY:HandleProne()
 	if GameMode == "darkrp" then
 		if prone.RestrictByJob then
 			local PlyJob = string.lower(self:getJobTable().name)
-			allowed = false
+			self.allowedprone = false
 
 			for i, v in ipairs(prone.AllowedJobs) do
 				if PlyJob == string.lower(v) then
-					allowed = true
+					self.allowedprone = not prone.JobsIsBlacklist
 					break
 				end
 			end
@@ -108,7 +108,7 @@ function PLY:CanExitProne()
 			net.WriteString("There isn't enough room to stand up!")
 		net.Send(self)
 	end
-	
+
 	return not tr.Hit
 end
 
@@ -164,6 +164,9 @@ function prone.StartProne(ply)
 	ply:SetProneAnimLength(length + ply.Prone_StartTime)
 	------------------
 	------------------
+	if prone.GetUpDownSound then
+		ply:EmitSound("prone.GetUpDownSound")
+	end
 
 	local weapon = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon() or false
 	if weapon then
@@ -172,8 +175,8 @@ function prone.StartProne(ply)
 		weapon:SetNextSecondaryFire(delay)
 	end
 
-	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, 24))
-	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, 24))
+	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))
+	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.HullHeight))
 	------------------
 	------------------
 
@@ -194,10 +197,17 @@ function prone.EndProne(ply, forced)
 	if not IsValid(ply) then return end
 	ply.Prone_EndTime = CurTime()
 
-	if not forced then	
+	if not forced then
 		local _, length = ply:LookupSequence("ProneDown_Stand")
 		ply:SetProneAnimLength(length + ply.Prone_EndTime)
 		ply:SetProneAnimState(2)
+
+		if prone.MoveSound and timer.Exists("prone_walksound_"..ply:SteamID()) then
+			timer.Remove("prone_walksound_"..ply:SteamID())
+		end
+		if prone.GetUpDownSound then
+			ply:EmitSound("prone.GetUpDownSound")
+		end
 
 		local weapon = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon() or false
 		if weapon then

@@ -89,7 +89,7 @@ function PLY:CanExitProne()
 		net.Start("Prone_CantExitProne")
 		net.Send(self)
 	end
-	
+
 	return not tr.Hit
 end
 

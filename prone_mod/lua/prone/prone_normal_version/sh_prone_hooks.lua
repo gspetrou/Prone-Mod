@@ -16,23 +16,25 @@ hook.Add("UpdateAnimation", "Prone_Animations", function(ply, velocity, maxSeqGr
 			movement = length/maxSeqGroundSpeed
 		end
 
-		local rate = math.min(movement, 2)
+		local rate
 
-		if not ply:IsOnGround() and length >= 1000 then
-			rate = 0.1
+		if AnimState == 0 or AnimState == 2 then
+			rate = 1
+		else
+			rate = math.min(movement, 2)
+
+			if not ply:IsOnGround() and length >= 1000 then
+				rate = 0.1
+			end
 		end
 
 		if CLIENT then
-			local EyeAngP = ply:EyeAngles().p 
+			local EyeAngP = ply:EyeAngles().p
 			if EyeAngP < 89 then
 				ply:SetPoseParameter("body_pitch", math.Clamp(EyeAngP * -1, -10, 50))
 				ply:SetPoseParameter("body_yaw", 0)
 				ply:InvalidateBoneCache()
 			end
-		end
-
-		if AnimState == 0 or AnimState == 2 then
-			rate = 1
 		end
 
 		ply:SetPlaybackRate(rate)
@@ -133,7 +135,7 @@ if not prone.CanMoveAndShoot then
 	end)
 end
 
-hook.Add("SetupMove", "Prone_PreventJumpWehenProne", function(ply, cmd)
+hook.Add("SetupMove", "Prone_PreventJumpWhenProne", function(ply, cmd)
 	if ply:IsProne() then
 		if cmd:KeyDown(IN_JUMP) then
 			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))	-- Disables jumping, thanks meep

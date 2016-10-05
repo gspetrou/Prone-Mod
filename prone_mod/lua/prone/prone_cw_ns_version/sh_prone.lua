@@ -3,7 +3,6 @@
 util.PrecacheModel("models/player/p_kleiner.mdl")
 util.PrecacheModel("models/player/p_alyx.mdl")
 
-local GameMode = tobool(DarkRP) and "darkrp" or engine.ActiveGamemode()
 local PLY = FindMetaTable("Player")
 
 function PLY:IsProne()
@@ -24,4 +23,26 @@ end
 
 function PLY:SetProneAnimLength(len)	-- Used for get up/get down animations
 	self:SetNWFloat("prone_animlength", len)
+end
+
+if prone.GetUpDownSound then
+	sound.Add({
+		name = "prone.GetUpDownSound",
+		channel = CHAN_AUTO,
+		volume = 0.5,
+		level = 55,
+		pitch = {95, 110},
+		sound = prone.GetUpDownSound
+	})
+end
+
+if prone.GetUpDownSound then
+	sound.Add({
+		name = "prone.MoveSound",
+		channel = CHAN_AUTO,
+		volume = 0.5,
+		level = 55,
+		pitch = {95, 110},
+		sound = prone.MoveSound
+	})
 end

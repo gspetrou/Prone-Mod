@@ -7,7 +7,7 @@ net.Receive("Prone_HandleProne", function(len, ply)
 end)
 
 hook.Add("PlayerInitialSpawn", "Prone_SetupVariables", function(ply)
-	ply.Prone_LastBindKeyRelease = 0
+	ply.Prone_LastBindKeyPress = 0
 	ply.Prone_LastProneRequestDelay = 0
 
 	-- Without this server only variable we would have to call ply:IsProne() a lot
@@ -64,16 +64,31 @@ if prone.BindKey then
 	if prone.BindKeyDoubleTap then
 		hook.Add("KeyRelease", "Prone_BindKeyRelease", function(ply, key)
 			if IsFirstTimePredicted() and key == prone.BindKey then
-				if CurTime() < ply.Prone_LastBindKeyRelease then
-					ply:HandleProne()
-				else
-					ply.Prone_LastBindKeyRelease = CurTime() + 1
+				if key == prone.BindKey then
+					if (ply.Prone_LastBindKeyPress or 0) < CurTime() then
+						ply.Prone_LastBindKeyPress = CurTime() + .8
+					else
+						ply:HandleProne()
+						ply.Prone_LastBindKeyPress = 0
+					end
+				elseif prone.JumpToGetUp and key == IN_JUMP and ply.InProne then
+					if prone.JumpToGetUpDoubleTap then
+						if (ply.Prone_LastBindKeyPress or 0) < CurTime() then
+							ply.Prone_LastBindKeyPress = CurTime() + .8
+						else
+							ply:HandleProne()
+							ply.Prone_LastBindKeyPress = 0
+						end
+					else
+						ply:HandleProne()
+						ply.Prone_LastBindKeyPress = 0
+					end
 				end
 			end
 		end)
 	else
 		hook.Add("KeyPress", "Prone_BindKeyPress", function(ply, key)
-			if IsFirstTimePredicted() and key == prone.BindKey then
+			if IsFirstTimePredicted() and (key == prone.BindKey or (prone.JumpToGetUp and key == IN_JUMP)) then
 				prone.HandleProne(ply)
 			end
 		end)

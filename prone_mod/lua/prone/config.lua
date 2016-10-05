@@ -82,7 +82,7 @@ prone.MoveSound = false
 
 -- How often the prone.MoveSound should be played. You should mess with this yourself.
 -- DEFAULT: 0.5 (seconds)
-prone.StepSoundTime = .75
+prone.StepSoundTime = .5
 
 
 ///////////////////////////
@@ -105,7 +105,7 @@ prone.AllowedJobs = {
 }
 
 -- Instead of prone.RestrictByJob being a whitelist
--- set this to true to make it a blacklist instead.
+-- set this to true to make it a blacklist.
 -- DEFAULT: false
 prone.JobsIsBlacklist = false
 
@@ -127,48 +127,97 @@ prone.GetUpOrDownSpeed = 0
 ////  Animations  /////
 ///////////////////////
 -- Sets the prone animation for each holdtype.
-prone.WeaponAnims = {
-	moving = {
-		ar2			= ACT_RUN_AIM_SHOTGUN,
-		camera		= ACT_RUN_AIM_PISTOL,
-		crossbow	= ACT_RUN_AIM_RIFLE,
-		duel		= ACT_RUN_AIM_RIFLE,
-		fist		= ACT_RUN_PROTECTED,
-		knife		= ACT_RUN_PROTECTED,
-		grenade		= ACT_RUN_AIM_PISTOL,
-		magic		= ACT_RUN_PROTECTED,
-		melee		= ACT_RUN_AIM_PISTOL,
-		melee2		= ACT_RUN_AIM_PISTOL,
-		normal		= ACT_RUN_PROTECTED,
-		passive		= ACT_RUN_PROTECTED,
-		pistol		= ACT_RUN_AIM_PISTOL,
-		physgun		= ACT_RUN_AIM_AGITATED,
-		revolver	= ACT_RUN_AIM_PISTOL,
-		rpg			= ACT_RUN_AIM_STIMULATED,
-		shotgun		= ACT_RUN_AIM_SHOTGUN,
-		slam		= ACT_RUN_AIM_PISTOL,
-		smg			= ACT_RUN_AIM_SHOTGUN
-	},
+if not prone.CW_NS_Mode then
+	prone.WeaponAnims = {
+		moving = {
+			ar2			= ACT_RUN_AIM_SHOTGUN,
+			camera		= ACT_RUN_AIM_PISTOL,
+			crossbow	= ACT_RUN_AIM_RIFLE,
+			duel		= ACT_RUN_AIM_RIFLE,
+			fist		= ACT_RUN_PROTECTED,
+			knife		= ACT_RUN_PROTECTED,
+			grenade		= ACT_RUN_AIM_PISTOL,
+			magic		= ACT_RUN_PROTECTED,
+			melee		= ACT_RUN_AIM_PISTOL,
+			melee2		= ACT_RUN_AIM_PISTOL,
+			normal		= ACT_RUN_PROTECTED,
+			passive		= ACT_RUN_PROTECTED,
+			pistol		= ACT_RUN_AIM_PISTOL,
+			physgun		= ACT_RUN_AIM_AGITATED,
+			revolver	= ACT_RUN_AIM_PISTOL,
+			rpg			= ACT_RUN_AIM_STIMULATED,
+			shotgun		= ACT_RUN_AIM_SHOTGUN,
+			slam		= ACT_RUN_AIM_PISTOL,
+			smg			= ACT_RUN_AIM_SHOTGUN
+		},
 
-	idle = {
-		ar2			= ACT_TURN,
-		camera		= ACT_TURNLEFT45,
-		crossbow	= ACT_TURNRIGHT45,
-		duel		= ACT_TURNRIGHT45,
-		fist		= ACT_UNDEPLOY,
-		knife		= ACT_UNDEPLOY,
-		grenade		= ACT_VICTORY_DANCE,
-		magic		= ACT_UNDEPLOY,
-		melee		= ACT_SHIPLADDER_DOWN,
-		melee2		= ACT_SHIPLADDER_UP,
-		normal		= ACT_SHIELD_ATTACK,
-		passive		= ACT_SHIELD_ATTACK,
-		pistol		= ACT_RUN_STEALTH_PISTOL,
-		physgun		= ACT_SHIELD_KNOCKBACK,
-		revolver	= ACT_RUN_SCARED,
-		rpg			= ACT_RUN_RPG,
-		shotgun		= ACT_SHIELD_UP_IDLE,
-		slam		= ACT_RUN_STEALTH,
-		smg			= ACT_RUN_RIFLE
+		idle = {
+			ar2			= ACT_TURN,
+			camera		= ACT_TURNLEFT45,
+			crossbow	= ACT_TURNRIGHT45,
+			duel		= ACT_TURNRIGHT45,
+			fist		= ACT_UNDEPLOY,
+			knife		= ACT_UNDEPLOY,
+			grenade		= ACT_VICTORY_DANCE,
+			magic		= ACT_UNDEPLOY,
+			melee		= ACT_SHIPLADDER_DOWN,
+			melee2		= ACT_SHIPLADDER_UP,
+			normal		= ACT_SHIELD_ATTACK,
+			passive		= ACT_SHIELD_ATTACK,
+			pistol		= ACT_RUN_STEALTH_PISTOL,
+			physgun		= ACT_SHIELD_KNOCKBACK,
+			revolver	= ACT_RUN_SCARED,
+			rpg			= ACT_RUN_RPG,
+			shotgun		= ACT_SHIELD_UP_IDLE,
+			slam		= ACT_RUN_STEALTH,
+			smg			= ACT_RUN_RIFLE
+		}
 	}
-}
+else
+	prone.WeaponAnims = {
+		moving = {
+			pistol = "ProneWalkIdle_PISTOL",
+			smg = "ProneWalkIdle_PSCHRECK",
+			grenade = "ProneWalkAim_GREN_FRAG",
+			ar2 = "ProneWalkIdle_PSCHRECK",
+			shotgun = "ProneWalkAim_GREN_FRAG",
+			rpg = "ProneWalkIdle_BAZOOKA",
+			physgun = "ProneWalkIdle_TOMMY",
+			crossbow = "ProneWalkIdle_TOMMY",
+			melee = "ProneWalkIdle_TOMMY",
+			slam = "ProneWalkIdle_TNT",
+			normal = "ProneWalkAim_GREN_FRAG",
+			fist = "ProneWalkAim_GREN_FRAG",
+			melee2 = "ProneWalkAim_GREN_FRAG",
+			passive = "ProneWalkIdle_PSCHRECK",
+			knife = "ProneWalkAim_KNIFE",
+			duel = "ProneWalkIdle_PSCHRECK",
+			camera = "ProneWalkIdle_TNT",
+			magic = "ProneWalkAim_GREN_FRAG",
+			revolver = "ProneWalkIdle_PISTOL"
+		},
+
+		idle = {
+			pistol = "ProneAim_SPADE",
+			smg = "ProneAim_MP40",
+			grenade = "ProneAim_KNIFE",
+			ar2 = "ProneAim_30CAL",
+			shotgun = "ProneAim_MG",
+			rpg = "ProneAim_BAZOOKA",
+			physgun = "ProneAim_MP44",
+			crossbow = "ProneAim_RIFLE",
+			melee = "ProneAim_KNIFE",
+			slam = "ProneAim_KNIFE",
+			normal = "ProneAim_KNIFE",
+			fist = "ProneAim_KNIFE",
+			melee2 = "ProneAim_KNIFE",
+			passive = "ProneAim_KNIFE",
+			knife = "ProneAim_KNIFE",
+			duel = "ProneAim_RIFLE",
+			camera = "ProneAim_KNIFE",
+			magic = "ProneAim_KNIFE",
+			revolver = "ProneAim_SPADE"
+		}	
+	}
+end
+
