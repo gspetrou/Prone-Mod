@@ -10,7 +10,7 @@ local function InitProne(folder)
 		AddCSLuaFile("prone/"..folder.."/cl_prone.lua")
 		AddCSLuaFile("prone/"..folder.."/sh_prone.lua")
 		AddCSLuaFile("prone/"..folder.."/sh_prone_hooks.lua")
-		AddCSLuaFile("prone/"..folder.."/config.lua")
+		AddCSLuaFile("prone/config.lua")
 
 		include("prone/config.lua")
 		include("prone/"..folder.."/sv_prone.lua")
