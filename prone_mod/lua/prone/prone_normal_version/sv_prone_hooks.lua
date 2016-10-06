@@ -1,4 +1,4 @@
--- Made by George "Stalker" Petrou, enjoy!
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
 
 hook.Add("PlayerInitialSpawn", "Prone_SetupVariables", function(ply)
 	ply.Prone_LastProneRequestDelay = 0

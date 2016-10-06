@@ -1,4 +1,4 @@
--- Made by George "Stalker" Petrou, enjoy!
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
 
 util.PrecacheModel("models/player/p_kleiner.mdl")
 util.PrecacheModel("models/player/p_alyx.mdl")

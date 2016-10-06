@@ -1,7 +1,8 @@
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
 prone = prone or {}
 
 if SERVER then
-	resource.AddWorkshop("609281761")
+	resource.AddWorkshop("775573383")
 end
 
 local function InitProne(folder)

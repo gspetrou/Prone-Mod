@@ -1,4 +1,4 @@
--- Made by George "Stalker" Petrou, enjoy!
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
 
 local GameMode
 

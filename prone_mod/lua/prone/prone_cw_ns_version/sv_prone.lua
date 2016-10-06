@@ -1,4 +1,4 @@
--- Made by George "Stalker" Petrou, enjoy!
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
 
 util.AddNetworkString("Prone_HandleProne")
 util.AddNetworkString("Prone_StartProne")

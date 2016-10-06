@@ -1,4 +1,4 @@
--- Made by George "Stalker" Petrou, enjoy!
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
 
 function prone.CreateFakeProneModel(ply, model, color, bodygroups, plyskin, playercolor)
 	ply.ProneModel = ClientsideModel(model)
