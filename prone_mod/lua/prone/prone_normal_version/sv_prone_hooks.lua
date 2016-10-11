@@ -1,13 +1,12 @@
 -- Copyright 2016 George "Stalker" Petrou, enjoy!
 
-hook.Add("PlayerInitialSpawn", "Prone_SetupVariables", function(ply)
-	ply.Prone_LastProneRequestDelay = 0
-	ply.Prone_LastBindKeyPress = ply.Prone_LastBindKeyPress or 0
+local PLAYER = FindMetaTable("Player")
+PLAYER.Prone_LastProneRequestDelay = 0
+PLAYER.Prone_LastBindKeyPress =  0
 
-	-- Without this server only variable we would have to call ply:IsProne() a lot
-	-- which is a bit more expensive
-	ply.InProne = false
-end)
+-- Without this server only variable we would have to call ply:IsProne() a lot
+-- which is a bit more expensive
+PLAYER.InProne = false
 
 hook.Add("DoPlayerDeath", "Prone_ExitOnDeath", function(ply)
 	if ply.InProne then
