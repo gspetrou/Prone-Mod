@@ -63,14 +63,8 @@ net.Receive("Prone_CantExitProne", function()
 	end
 end)
 
-timer.Create("Prone_WaitForValidPlayers", .5, 0, function()
-	if IsValid(LocalPlayer()) then
-		timer.Simple(.25, function()
-			net.Start("Prone_PlayerFullyLoaded")
-			net.SendToServer()
-			GameMode = string.lower(engine.ActiveGamemode())
-
-			timer.Remove("Prone_WaitForValidPlayers")
-		end)
-	end
+hook.Add("InitPostEntity", "Prone_InitPostEntity", function()
+	net.Start("Prone_PlayerFullyLoaded")
+	net.SendToServer()
+	GameMode = string.lower(engine.ActiveGamemode())		
 end)
