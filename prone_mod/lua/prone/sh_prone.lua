@@ -1,21 +1,21 @@
 local PLAYER = FindMetaTable("Player")
 
 if SERVER then
-	PLAYER.InProne = false
 	PLAYER.prone = {}
 	PLAYER.prone.starttime = 0
 	PLAYER.prone.endtime = 0
 	PLAYER.prone.getuptime = 0
 	PLAYER.prone.getdowntime = 0
+	PLAYER.prone.lastrequest = 0
 	PLAYER.prone.oldviewoffset = Vector(0, 0, 0)
 	PLAYER.prone.oldviewoffset_ducked = Vector(0, 0, 0)
 end
 
 --[[	States
-0	-	Normal, standing
 1	-	Getting down
 2	-	In Prone
 3	-	Getting up
+4	-	Normal, standing
 ]]
 
 function PLAYER:GetProneAnimationState()
@@ -33,7 +33,7 @@ function PLAYER:SetProneAnimationLength(length)
 end
 
 function PLAYER:IsProne()
-	return self:GetNW2Bool("prone.IsProne", false)
+	return self:GetProneAnimationState() ~= 4
 end
 
 -- This is stupid but more optimized.
@@ -78,19 +78,6 @@ end
 
 -- Like above. Stupid but optimized.
 local GetMainActivityAnimation = {
-	-- Setting back out of prone after the get up animation is over
-	[0] = function(ply)
-		if SERVER then
-			prone.Exit(ply)
-
-			if not ply:CanExitProne() then
-				prone.StartProne(ply)
-				ply:SetViewOffset(Vector(0, 0, 18))
-				ply:SetViewOffsetDucked(Vector(0, 0, 18))
-			end
-		end
-	end,
-
 	-- Getting down
 	[1] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
@@ -124,7 +111,20 @@ local GetMainActivityAnimation = {
 
 			return ACT_GET_UP_STAND	--"proneup_stand"
 		else
-			ply:SetProneAnimationState(0)
+			ply:SetProneAnimationState(4)
+		end
+	end,
+
+	-- Setting back out of prone after the get up animation is over
+	[4] = function(ply)
+		if SERVER and ply.InProne then
+			prone.Exit(ply)
+
+			if not ply:CanExitProne() then
+				prone.StartProne(ply)
+				ply:SetViewOffset(Vector(0, 0, 18))
+				ply:SetViewOffsetDucked(Vector(0, 0, 18))
+			end
 		end
 	end
 }

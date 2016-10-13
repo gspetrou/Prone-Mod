@@ -2,6 +2,22 @@
 prone = prone or {}
 prone.config = prone.config or {}
 
+function net.WritePlayer(pl)
+	if IsValid(pl) then 
+		net.WriteUInt(pl:EntIndex(), 7)
+	else
+		net.WriteUInt(0, 7)
+	end
+end
+
+function net.ReadPlayer()
+	local i = net.ReadUInt(7)
+	if not i then
+		return
+	end
+	return Entity(i)
+end
+
 if SERVER then
 	resource.AddWorkshop("775573383")
 

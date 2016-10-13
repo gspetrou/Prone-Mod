@@ -8,6 +8,9 @@ prone.config.MoveSpeed = 50
 
 prone.config.CanMoveAndShoot = false
 
+prone.config.BindKey = KEY_LCONTROL
+prone.config.BindKey_DoubleClick = true
+
 prone.config.WeaponAnims = {
 	moving = {
 		ar2			= ACT_RUN_AIM_SHOTGUN,

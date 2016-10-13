@@ -6,7 +6,10 @@ util.AddNetworkString("Prone.Exit")
 util.AddNetworkString("Prone.PlayerFullyLoaded")
 
 net.Receive("Prone.RequestedProne", function(_, ply)
-	print(ply:Nick().." wanted to go prone.")
+	if ply.prone.lastrequest <= CurTime() then
+		prone.Handle(ply)
+		ply.prone.lastrequest = CurTime() + 1.25
+	end
 end)
 
 local PLAYER = FindMetaTable("Player")
@@ -20,11 +23,33 @@ function PLAYER:CanExitProne()
 	})
 
 	if tr.Hit then
-		net.Start("Prone_CantExitProne")
+		net.Start("Prone.GetUpWarning")
 		net.Send(self)
 	end
 
 	return not tr.Hit
+end
+
+function prone.Handle(ply)
+	if not IsValid(ply) or not ply:Alive() then
+		return
+	end
+
+	if ply.InProne then
+		if ply:CanExitProne() then
+			local hookresult = hook.Call("Prone.CanExit", nil, ply) == nil and false or true
+			if hookresult then
+				prone.End(ply)
+			end
+		end
+	else
+		if ply:GetMoveType() ~= MOVETYPE_NOCLIP and ply:IsFlagSet(FL_ONGROUND) and ply:WaterLevel() < 1 then
+			local hookresult = hook.Call("Prone.CanEnter", nil, ply) == nil and false or true
+			if hookresult then
+				prone.Enter(ply)
+			end
+		end
+	end
 end
 
 function prone.Enter(ply)
@@ -37,7 +62,6 @@ function prone.Enter(ply)
 	net.Broadcast()
 
 	ply.InProne = true
-	ply:SetNW2Bool("prone.IsProne", true)
 	ply.prone.starttime = CurTime()
 
 	local length = ply:SequenceDuration(ply:LookupSequence("proneup_stand"))
@@ -101,17 +125,17 @@ function prone.Exit(ply)
 		return
 	end
 
-	ply:SetNW2Bool("prone.IsProne", false)
 	ply.InProne = false
 	ply:SetViewOffset(ply.prone.oldviewoffset)
 	ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked)
+
 	ply:ResetHull()
 
 	net.Start("prone.Exit")
 		net.WriteEntity(ply)
 	net.Broadcast()
 
-	ply:SetProneAnimationState(0)
+	ply:SetProneAnimationState(4)
 end
 
 net.Receive("Prone.PlayerFullyLoaded", function(_, ply)
