@@ -135,7 +135,7 @@ function prone.Exit(ply)
 		net.WriteEntity(ply)
 	net.Broadcast()
 
-	ply:SetProneAnimationState(4)
+	ply:SetProneAnimationState(5)
 end
 
 net.Receive("Prone.PlayerFullyLoaded", function(_, ply)

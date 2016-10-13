@@ -15,11 +15,12 @@ end
 1	-	Getting down
 2	-	In Prone
 3	-	Getting up
-4	-	Normal, standing
+4	-	Exitting prone. Not the same as 3.
+5	-	Out of prone
 ]]
 
 function PLAYER:GetProneAnimationState()
-	return self:GetNW2Int("prone.AnimationState", 0)
+	return self:GetNW2Int("prone.AnimationState", 5)
 end
 function PLAYER:SetProneAnimationState(state)
 	return self:SetNW2Int("prone.AnimationState", state)
@@ -33,7 +34,7 @@ function PLAYER:SetProneAnimationLength(length)
 end
 
 function PLAYER:IsProne()
-	return self:GetProneAnimationState() ~= 4
+	return self:GetProneAnimationState() ~= 5
 end
 
 -- This is stupid but more optimized.
@@ -118,6 +119,7 @@ local GetMainActivityAnimation = {
 	-- Setting back out of prone after the get up animation is over
 	[4] = function(ply)
 		if SERVER and ply.InProne then
+			print("this got called")
 			prone.Exit(ply)
 
 			if not ply:CanExitProne() then
