@@ -35,7 +35,7 @@ function prone.Handle(ply)
 		return
 	end
 
-	if ply.InProne then
+	if ply:IsProne() then
 		if ply:CanExitProne() then
 			local hookresult = hook.Call("Prone.CanExit", nil, ply) == nil and false or true
 			if hookresult then
@@ -61,7 +61,6 @@ function prone.Enter(ply)
 		net.WriteEntity(ply)
 	net.Broadcast()
 
-	ply.InProne = true
 	ply.prone.starttime = CurTime()
 
 	local length = ply:SequenceDuration(ply:LookupSequence("proneup_stand"))
@@ -81,7 +80,7 @@ function prone.Enter(ply)
 	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
 
 	ply:AnimRestartMainSequence()
-	ply:SetProneAnimationState(1)
+	ply:SetProneAnimationState(PRONE_GETTINGDOWN)
 
 	hook.Call("Prone.OnPlayerEntered", nil, ply, length)
 end
@@ -95,13 +94,13 @@ function prone.End(ply, forced)
 	ply.prone.endtime = CurTime()
 	local length = 0
 
-	if not forced then
+	if forced ~= true then
 		net.Start("Prone.EndAnimation")
 			net.WriteEntity(ply)
 		net.Broadcast()
 
 		length = ply:SequenceDuration(ply:LookupSequence("proneup_stand"))
-		ply.prone.getuptime = length + ply.prone.endtime
+		ply.prone.getuptime = length + ply.prone.endtime - .1
 		ply:SetProneAnimationLength(ply.prone.getuptime)
 
 		local weapon = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon() or false
@@ -111,12 +110,10 @@ function prone.End(ply, forced)
 		end
 
 		ply:AnimRestartMainSequence()
-		ply:SetProneAnimationState(3)
+		ply:SetProneAnimationState(PRONE_GETTINGUP)
 	else
 		prone.Exit(ply)
 	end
-
-	hook.Call("Prone.OnPlayerExitted", nil, ply, length)
 end
 
 -- Actually leaving prone, call Prone.End with the second arguement as true rather than calling this directly.
@@ -125,7 +122,6 @@ function prone.Exit(ply)
 		return
 	end
 
-	ply.InProne = false
 	ply:SetViewOffset(ply.prone.oldviewoffset)
 	ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked)
 
@@ -135,13 +131,14 @@ function prone.Exit(ply)
 		net.WriteEntity(ply)
 	net.Broadcast()
 
-	ply:SetProneAnimationState(5)
+	ply:SetProneAnimationState(PRONE_NOTINPRONE)
+	hook.Call("Prone.OnPlayerExitted", nil, ply)
 end
 
 net.Receive("Prone.PlayerFullyLoaded", function(_, ply)
 	local proneplayers = {}
 	for i, v in ipairs(player.GetAll()) do
-		if v.InProne then
+		if v:IsProne() then
 			table.insert(proneplayers, v)
 		end
 	end
@@ -157,23 +154,23 @@ net.Receive("Prone.PlayerFullyLoaded", function(_, ply)
 end)
 
 hook.Add("DoPlayerDeath", "Prone.ExitOnDeath", function(ply)
-	if ply.InProne then
+	if ply:IsProne() then
 		prone.End(ply, true)
 	end
 end)
 
 hook.Add("VehicleMove", "Prone.ExitOnVehicleEnter", function(ply)
-	if ply.InProne then
+	if ply:IsProne() then
 		prone.Prone(ply, true)
 	end
 end)
 
 timer.Create("Prone.Manage", 1, 0, function()
 	for i, v in ipairs(player.GetAll()) do
-		if v.InProne then
+		if v:IsProne() then
 			if v:GetMoveType() == MOVETYPE_NOCLIP then 
 				prone.End(v, true)
-			elseif v:WaterLevel() > 1 then
+			elseif v:WaterLevel() > 1 and not v:ProneIsGettingUp() then
 				prone.End(v)
 			end
 		end

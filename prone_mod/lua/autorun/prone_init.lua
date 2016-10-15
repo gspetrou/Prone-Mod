@@ -2,6 +2,13 @@
 prone = prone or {}
 prone.config = prone.config or {}
 
+-- States
+PRONE_GETTINGDOWN	= 0
+PRONE_INPRONE		= 1
+PRONE_GETTINGUP		= 2
+PRONE_EXITTINGPRONE	= 3
+PRONE_NOTINPRONE	= 4
+
 function net.WritePlayer(pl)
 	if IsValid(pl) then 
 		net.WriteUInt(pl:EntIndex(), 7)

@@ -54,7 +54,7 @@ local doubletap_shouldsend = true
 local doubletap_keypress_resettime = false
 hook.Add("Think", "Prone.BindkeySingleClick", function()
 	-- The shit I do so that kiddies can use their beloved KEY enums
-	if not system.IsLinux() and system.HasFocus() and not vgui.GetKeyboardFocus() and not gui.IsGameUIVisible() and not gui.IsConsoleVisible() then
+	if LocalPlayer():IsFlagSet(FL_ONGROUND) and not system.IsLinux() and system.HasFocus() and not vgui.GetKeyboardFocus() and not gui.IsGameUIVisible() and not gui.IsConsoleVisible() then
 		if input.IsKeyDown(prone.config.BindKey) then
 			key_waspressed = true
 
@@ -86,4 +86,5 @@ end)
 
 concommand.Add("prone", function()
 	net.Start("Prone.RequestedProne")
+	net.SendToServer()
 end)

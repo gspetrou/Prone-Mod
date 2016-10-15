@@ -11,16 +11,8 @@ if SERVER then
 	PLAYER.prone.oldviewoffset_ducked = Vector(0, 0, 0)
 end
 
---[[	States
-1	-	Getting down
-2	-	In Prone
-3	-	Getting up
-4	-	Exitting prone. Not the same as 3.
-5	-	Out of prone
-]]
-
 function PLAYER:GetProneAnimationState()
-	return self:GetNW2Int("prone.AnimationState", 5)
+	return self:GetNW2Int("prone.AnimationState", PRONE_NOTINPRONE)
 end
 function PLAYER:SetProneAnimationState(state)
 	return self:SetNW2Int("prone.AnimationState", state)
@@ -34,13 +26,17 @@ function PLAYER:SetProneAnimationLength(length)
 end
 
 function PLAYER:IsProne()
-	return self:GetProneAnimationState() ~= 5
+	return self:GetProneAnimationState() <= PRONE_EXITTINGPRONE
+end
+
+function PLAYER:ProneIsGettingUp()
+	return self:GetProneAnimationState() == PRONE_GETTINGUP
 end
 
 -- This is stupid but more optimized.
 local GetUpdateAnimationRate = {
-	[1] = 1,
-	[3] = 1
+	[PRONE_GETTINGDOWN] = 1,
+	[PRONE_GETTINGUP] = 1
 }
 hook.Add("UpdateAnimation", "Prone.Animations", function(ply, velocity, maxSeqGroundSpeed)
 	if ply:IsProne() then
@@ -77,20 +73,31 @@ local function GetSequenceForWeapon(holdtype, ismoving)
 	return ismoving and prone.config.WeaponAnims.moving[holdtype] or prone.config.WeaponAnims.idle[holdtype]
 end
 
--- Like above. Stupid but optimized.
 local GetMainActivityAnimation = {
-	-- Getting down
-	[1] = function(ply)
+	[PRONE_GETTINGDOWN] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
 			return ACT_GET_DOWN_STAND	--"pronedown_stand"
 		else
-			ply:SetProneAnimationState(2)
+			ply:SetProneAnimationState(PRONE_INPRONE)
 			return ACT_SHIELD_ATTACK	--"prone_passive"
 		end
 	end,
 
-	-- In prone
-	[2] = function(ply, velocity)
+	[PRONE_GETTINGUP] = function(ply)
+		if ply:GetProneAnimationLength() >= CurTime() then
+			--[[
+			local DownVect = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))
+			ply:SetViewOffset(DownVect)
+			ply:SetViewOffsetDucked(DownVect)
+			]]
+
+			return ACT_GET_UP_STAND	--"proneup_stand"
+		else
+			ply:SetProneAnimationState(PRONE_EXITTINGPRONE)
+		end
+	end,
+
+	[PRONE_INPRONE] = function(ply, velocity)
 		local weapon = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon() or false
 		local WepHoldType
 		if weapon then
@@ -100,26 +107,8 @@ local GetMainActivityAnimation = {
 		return GetSequenceForWeapon(WepHoldType or "normal", velocity:LengthSqr() >= 225)
 	end,
 
-	-- Getting up
-	[3] = function(ply)
-		if ply:GetProneAnimationLength() >= CurTime() then
-
-			--[[
-			local DownVect = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))
-			ply:SetViewOffset(DownVect)
-			ply:SetViewOffsetDucked(DownVect)
-			]]
-
-			return ACT_GET_UP_STAND	--"proneup_stand"
-		else
-			ply:SetProneAnimationState(4)
-		end
-	end,
-
-	-- Setting back out of prone after the get up animation is over
-	[4] = function(ply)
-		if SERVER and ply.InProne then
-			print("this got called")
+	[PRONE_EXITTINGPRONE] = function(ply)
+		if SERVER then
 			prone.Exit(ply)
 
 			if not ply:CanExitProne() then
