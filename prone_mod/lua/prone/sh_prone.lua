@@ -1,7 +1,11 @@
 local PLAYER = FindMetaTable("Player")
+PLAYER.prone = {}
 
 if SERVER then
-	PLAYER.prone = {}
+	if prone.IsCompatibility() then
+		PLAYER.prone.cl_modeldata = {}
+	end
+
 	PLAYER.prone.starttime = 0
 	PLAYER.prone.endtime = 0
 	PLAYER.prone.getuptime = 0
@@ -70,41 +74,50 @@ hook.Add("UpdateAnimation", "Prone.Animations", function(ply, velocity, maxSeqGr
 end)
 
 local function GetSequenceForWeapon(holdtype, ismoving)
-	return ismoving and prone.config.WeaponAnims.moving[holdtype] or prone.config.WeaponAnims.idle[holdtype]
+	return ismoving and prone.animations.WeaponAnims.moving[holdtype] or prone.animations.WeaponAnims.idle[holdtype]
 end
 
 local GetMainActivityAnimation = {
 	[PRONE_GETTINGDOWN] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
-			return ACT_GET_DOWN_STAND	--"pronedown_stand"
+
+			local DownView = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 24))
+			ply:SetViewOffset(DownView)
+			ply:SetViewOffsetDucked(DownView)
+
+			return ply:Crouching() and prone.animations.gettingdown_crouch or prone.animations.gettingdown
 		else
 			ply:SetProneAnimationState(PRONE_INPRONE)
-			return ACT_SHIELD_ATTACK	--"prone_passive"
+
+			return prone.animations.passive
 		end
 	end,
 
 	[PRONE_GETTINGUP] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
-			--[[
-			local DownVect = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))
-			ply:SetViewOffset(DownVect)
-			ply:SetViewOffsetDucked(DownVect)
-			]]
 
-			return ACT_GET_UP_STAND	--"proneup_stand"
+			local UpView = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))
+			ply:SetViewOffset(UpView)
+			ply:SetViewOffsetDucked(UpView)
+
+			return ply:Crouching() and prone.animations.gettingup_crouch or prone.animations.gettingup
 		else
 			ply:SetProneAnimationState(PRONE_EXITTINGPRONE)
 		end
 	end,
 
 	[PRONE_INPRONE] = function(ply, velocity)
-		local weapon = IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon() or false
-		local WepHoldType
-		if weapon then
-			WepHoldType = weapon:GetHoldType() ~= "" and weapon:GetHoldType() or weapon.HoldType
+		local weapon = ply:GetActiveWeapon()
+		local WeaponHoldType
+
+		if IsValid(weapon) then
+			WeaponHoldType = weapon:GetHoldType()
+			if WeaponHoldType == "" then
+				WeaponHoldType = weapon.HoldType
+			end
 		end
 
-		return GetSequenceForWeapon(WepHoldType or "normal", velocity:LengthSqr() >= 225)
+		return GetSequenceForWeapon(WeaponHoldType or "normal", velocity:LengthSqr() >= 225)
 	end,
 
 	[PRONE_EXITTINGPRONE] = function(ply)
@@ -120,10 +133,10 @@ local GetMainActivityAnimation = {
 	end
 }
 hook.Add("CalcMainActivity", "Prone.Animations", function(ply, velocity)
-	if ply:IsProne() then
-		local ACT = GetMainActivityAnimation[ply:GetProneAnimationState()](ply, velocity)
+	if ply:IsPlayer() and ply:IsProne() then
+		local seq = GetMainActivityAnimation[ply:GetProneAnimationState()](ply, velocity)
 
-		return ACT, -1
+		return -1, ply:LookupSequence(seq or "")
 	end
 end)
 
@@ -136,8 +149,38 @@ hook.Add("SetupMove", "Prone.RestrictMovement", function(ply, cmd)
 		if ply:GetProneAnimationLength() >= CurTime() then
 			cmd:SetForwardSpeed(prone.config.TransitionSpeed)
 			cmd:SetSideSpeed(prone.config.TransitionSpeed)
+			return
 		else
 			cmd:SetMaxClientSpeed(prone.config.MoveSpeed)
 		end
+
+		if cmd:KeyDown(IN_ATTACK) or cmd:KeyDown(IN_ATTACK2) and prone.config.MoveShoot_Restrict then
+			local weapon = ply:GetActiveWeapon()
+			if not IsValid(weapon) then
+				return
+			end
+
+			local weaponclass = weapon:GetClass()
+			if not prone.config.MoveShoot_Whitelist[weaponclass] then
+				local ShouldStopMovement = true
+				if cmd:KeyDown(IN_ATTACK) then
+					ShouldStopMovement = weapon:Clip1() > 0
+				else
+					ShouldStopMovement = weapon:Clip2() > 0
+				end
+
+				if (ShouldStopMovement or weaponclass == "weapon_crowbar") and ply:IsOnGround() then
+					cmd:SetForwardSpeed(0)
+					cmd:SetSideSpeed(0)
+					cmd:SetVelocity(Vector(0, 0, 0))
+				end
+			end
+		end
+	end
+end)
+
+hook.Add("TTTPlayerSpeed", "Prone.RestrictMovement", function(ply)
+	if ply:IsProne() then
+		return prone.ProneSpeed/220	-- 220 is the default run speed in TTT
 	end
 end)
