@@ -32,8 +32,10 @@ cvars.AddChangeCallback("prone_compatibility", function(convar, old, new)
 end)
 
 hook.Add("Initialize", "Prone.Initialize", function()
+	local compatibility = GetConVar("prone_compatibility"):GetBool() == true or GAMEMODE.DerivedFrom == "clockwork" or GAMEMODE.DerivedFrom == "nutscript"
+
 	function prone.IsCompatibility()
-		return GetConVar("prone_compatibility"):GetBool() or GAMEMODE.DerivedFrom == "clockwork" or GAMEMODE.DerivedFrom == "nutscript"
+		return compatibility
 	end
 
 	if SERVER then

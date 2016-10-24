@@ -1,3 +1,4 @@
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
 local PLAYER = FindMetaTable("Player")
 PLAYER.prone = {}
 

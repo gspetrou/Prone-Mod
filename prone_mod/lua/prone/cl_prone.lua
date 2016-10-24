@@ -1,10 +1,13 @@
-net.Receive("Prone.GetUpWarning", function()
-	if GAMEMODE_NAME == "combinecontrol" then
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
+if GAMEMODE_NAME == "combinecontrol" or GAMEMODE.DerivedFrom == "combinecontrol" then
+	net.Receive("Prone.GetUpWarning", function()
 		GAMEMODE:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
-	else
+	end)
+else
+	net.Receive("Prone.GetUpWarning", function()
 		chat.AddText(Color(210, 10, 10), "There is not enough room to get up here.")
-	end
-end)
+	end)
+end
 
 net.Receive("Prone.Entered", function()
 	local ply = net.ReadPlayer()
@@ -17,7 +20,7 @@ net.Receive("Prone.Entered", function()
 
 		if prone.IsCompatibility() then
 			local model, clr, bodygroups, playercolor, playerskin = net.ReadString(), net.ReadColor(), net.ReadString(), net.ReadVector(), net.ReadUInt(5)
-			prone.CreateFakeModel(ply, model, clr, bodygroups, playerskin, playercolor)		
+			prone.CreateFakeModel(ply, model, clr, bodygroups, playerskin, playercolor)
 		end
 	end
 end)
@@ -29,11 +32,9 @@ net.Receive("Prone.Exit", function()
 		ply:AnimRestartMainSequence()
 		ply:ResetHull()	-- For prediction
 
-		if prone.IsCompatibility() then
-			if IsValid(ply.prone.cl_model) then
-				ply.prone.cl_model:Remove()
-				ply.prone.cl_model = nil
-			end
+		if prone.IsCompatibility() and IsValid(ply.prone.cl_model) then
+			ply.prone.cl_model:Remove()
+			ply.prone.cl_model = nil
 		end
 	elseif prone.IsCompatibility() then
 		for i, v in ipairs(ents.FindByClass("class C_BaseFlex")) do
@@ -68,10 +69,10 @@ net.Receive("Prone.PlayerFullyLoaded", function()
 		if IsValid(ply) then
 			ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
 			ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-			
+
 			if prone.IsCompatibility() then
 				local model, clr, bodygroups, playercolor, playerskin = net.ReadString(), net.ReadColor(), net.ReadString(), net.ReadVector(), net.ReadUInt(5)
-				prone.CreateFakeModel(ply, model, clr, bodygroups, playerskin, playercolor)	
+				prone.CreateFakeModel(ply, model, clr, bodygroups, playerskin, playercolor)
 			end
 		end
 	end
@@ -104,7 +105,7 @@ hook.Add("Think", "Prone.BindkeySingleClick", function()
 			if key_waspressed then
 				if last_prone_request < CurTime() then
 					doubletap_shouldsend = not doubletap_shouldsend
-					
+
 					if not bindkey_doubletap:GetBool() or doubletap_shouldsend then
 						prone.Request()
 
@@ -213,6 +214,7 @@ end)
 if prone.IsCompatibility() then
 	function prone.CreateFakeModel(ply, model, clr, bodygrp, plyskin, playercolor)
 		ply.prone.cl_model = ClientsideModel(model, clr == color_white and RENDERGROUP_OPAQUE or RENDERGROUP_TRANSLUCENT)
+		ply.prone.cl_model.pronemodel = true
 		ply.prone.cl_model:SetOwner(ply)
 		ply.prone.cl_model:SetParent(ply)
 		ply.prone.cl_model:AddEffects(EF_BONEMERGE)
@@ -224,7 +226,7 @@ if prone.IsCompatibility() then
 		ply.prone.cl_model:SetBodyGroups(bodygrp)
 
 		ply.prone.cl_model:SetSkin(plyskin)
-		ply.prone.cl_model.GetPlayerColor = function(model, clr)
+		ply.prone.cl_model.GetPlayerColor = function()
 			return playercolor
 		end
 	end

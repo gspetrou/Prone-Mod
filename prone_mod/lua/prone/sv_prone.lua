@@ -1,3 +1,4 @@
+-- Copyright 2016 George "Stalker" Petrou, enjoy!
 util.AddNetworkString("Prone.RequestedProne")
 util.AddNetworkString("Prone.GetUpWarning")
 util.AddNetworkString("Prone.Entered")
@@ -47,9 +48,9 @@ function prone.Handle(ply)
 
 		if should_check_job then
 			local jobfound = false
-			local ply_darkrpjob = string.lower(ply:getJobTable().name)
+			local ply_darkrpjob = ply:Team()
 			for i, v in ipairs(prone.config.Darkrp_Joblist) do
-				if ply_darkrpjob == string.lower(v) then
+				if ply_darkrpjob == v then
 					if prone.config.Darkrp_IsWhitelist then
 						jobfound = true
 					else
@@ -69,8 +70,8 @@ function prone.Handle(ply)
 		if not GetGlobalBool("InRound", false) or preptime > CurTime() or ply:Team() ~= TEAM_HUNTERS then
 			return
 		end
-	elseif GAMEMODE.DervedFrom == "clockwork" then
-		if isfunction(ply.GetSharedVar) and ply:GetSharedVar("FallenOver") then
+	elseif GAMEMODE.DerivedFrom == "clockwork" then
+		if ply:IsRagdolled() then
 			return
 		end
 	end
@@ -97,18 +98,6 @@ function prone.Enter(ply)
 		return
 	end
 
-	ply.prone.starttime = CurTime()
-	local seq
-	if not ply:Crouching() then
-		seq = prone.animations.gettingdown
-	else
-		seq = prone.animations.gettingdown_crouch
-	end
-
-	local length = ply:SequenceDuration(ply:LookupSequence(seq))
-	ply.prone.getdowntime = length + ply.prone.starttime
-	ply:SetProneAnimationLength(ply.prone.getdowntime)
-
 	local compatability = prone.IsCompatibility()
 	if compatability then
 		-- We store their old info here
@@ -134,6 +123,18 @@ function prone.Enter(ply)
 		ply:SetColor(Color(255, 255, 255, 0))
 		ply:SetModel("models/player/kleiner.mdl")
 	end
+
+	ply.prone.starttime = CurTime()
+	local seq
+	if not ply:Crouching() then
+		seq = prone.animations.gettingdown
+	else
+		seq = prone.animations.gettingdown_crouch
+	end
+
+	local length = ply:SequenceDuration(ply:LookupSequence(seq))
+	ply.prone.getdowntime = length + ply.prone.starttime
+	ply:SetProneAnimationLength(ply.prone.getdowntime)
 
 	net.Start("Prone.Entered")
 		net.WritePlayer(ply)
@@ -234,6 +235,7 @@ function prone.Exit(ply)
 			net.WriteString(ply.prone.cl_modeldata.bodygroups)
 			net.WriteVector(ply.prone.cl_modeldata.proxycolor)
 			net.WriteUInt(ply.prone.cl_modeldata.skin, 5)
+			ply.prone.cl_modeldata = {}
 		end
 	net.Broadcast()
 
@@ -255,7 +257,12 @@ net.Receive("Prone.PlayerFullyLoaded", function(_, ply)
 			for i, v in ipairs(proneplayers) do
 				net.WritePlayer(v)
 				if prone.IsCompatibility() then
-					
+					net.WriteString(ply.prone.cl_modeldata.model)
+					local c = ply.prone.cl_modeldata.color
+					net.WriteColor(Color(c.r, c.g, c.b, c.a))
+					net.WriteString(ply.prone.cl_modeldata.bodygroups)
+					net.WriteVector(ply.prone.cl_modeldata.proxycolor)
+					net.WriteUInt(ply.prone.cl_modeldata.skin, 5)
 				end
 			end
 		net.Send(ply)
@@ -307,9 +314,7 @@ if prone.IsCompatibility() then
 
 	if Derived == "nutscript" then
 		hookname = "PostPlayerLoadout"
-	end
-
-	if Derived ~= "clockwork" then
+	elseif Derived ~= "clockwork" then
 		hook.Add(hookname, "Prone.LoadoutFix", function(ply)
 			if ply:IsProne() then
 				ply.prone.cl_modeldata.model = ply:GetModel()
@@ -339,7 +344,7 @@ if prone.IsCompatibility() then
 
 	hook.Add("PlayerDisconnected", "Prone.CleanFakeModel", function(ply)
 		if ply:IsProne() then
-			net.Start("Prone.End")
+			net.Start("Prone.Exit")
 				net.WriteEntity(ply)
 			net.Broadcast()
 		end

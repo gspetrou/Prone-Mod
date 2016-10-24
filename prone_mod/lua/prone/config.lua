@@ -46,12 +46,8 @@ prone.config.Darkrp_RestrictJobs = true
 prone.config.Darkrp_IsWhitelist = true
 -- If the above setting is true this is the job whitelist. Blacklist otherwise.
 prone.config.Darkrp_Joblist = {
-	"Thief",
-	"Civil Protection",
-	"Civil Protection Chief",
-	"Gangster",
-	"Mob Boss",
-	"Hobo"
+	TEAM_POLICE,
+	TEAM_GANG
 }
 -- Any players of these ranks can go prone, no matter of their job.
 prone.config.Darkrp_BypassRanks = {

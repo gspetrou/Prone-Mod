@@ -1,4 +1,13 @@
-local PLUGIN = PLUGIN;
+if SERVER then
+	function PLUGIN:DoPlayerDeath(ply)
+		if ply:IsProne() then
+			prone.End(ply, true)
+		end
+	end
+end
 
-Clockwork.kernel:IncludePrefixed("sv_hooks.lua");
-Clockwork.kernel:IncludePrefixed("cl_cwprone.lua");
+function PLUGIN:PlayerCanRagdoll()
+	if ply:IsProne() then
+		return false
+	end
+end
