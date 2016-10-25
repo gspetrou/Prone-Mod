@@ -17,17 +17,17 @@ if SERVER then
 end
 
 function PLAYER:GetProneAnimationState()
-	return self:GetNW2Int("prone.AnimationState", PRONE_NOTINPRONE)
+	return self:GetNWInt("prone.AnimationState", PRONE_NOTINPRONE)
 end
 function PLAYER:SetProneAnimationState(state)
-	return self:SetNW2Int("prone.AnimationState", state)
+	return self:SetNWInt("prone.AnimationState", state)
 end
 
 function PLAYER:GetProneAnimationLength()
-	return self:GetNW2Float("prone.AnimationLength", 0)
+	return self:GetNWFloat("prone.AnimationLength", 0)
 end
 function PLAYER:SetProneAnimationLength(length)
-	return self:SetNW2Float("prone.AnimationLength", length)
+	return self:SetNWFloat("prone.AnimationLength", length)
 end
 
 function PLAYER:IsProne()
@@ -54,7 +54,7 @@ hook.Add("UpdateAnimation", "Prone.Animations", function(ply, velocity, maxSeqGr
 
 		local rate = GetUpdateAnimationRate[ply:GetProneAnimationState()]
 		if not rate then
-			if not ply:IsOnGround() and length >= 1000 then
+			if not ply:IsOnGround() and length >= 750 then
 				rate = 0.1
 			else
 				rate = math.min(movement, 2)

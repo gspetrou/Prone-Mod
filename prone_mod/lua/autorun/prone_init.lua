@@ -10,6 +10,39 @@ PRONE_GETTINGUP		= 2
 PRONE_EXITTINGPRONE	= 3
 PRONE_NOTINPRONE	= 4
 
+if SERVER then
+	util.AddNetworkString("Prone.IsCompatibility")
+
+	hook.Add("PlayerInitialSpawn", "Prone.IsCompatibility", function(ply)
+		net.Start("Prone.IsCompatibility")
+			net.WriteBool(prone.IsCompatibility())
+		net.Send(ply)
+	end)
+else
+	net.Receive("prone.IsCompatibility", function()
+		local bool = net.ReadBool()
+		
+		function prone.IsCompatibility()
+			return bool
+		end
+
+		timer.Create("Prone.ManageFakeModels", 1, 0, function()
+			for i, v in ipairs(player.GetAll()) do
+				if IsValid(v.prone.cl_model) then
+					if v.prone.cl_model:GetParent() ~= v then
+						v.prone.cl_model:SetParent(v)
+					end
+
+					if not v:Alive() then
+						v.prone.cl_model:Remove()
+						v.prone.cl_model = nil
+					end
+				end
+			end
+		end)
+	end)
+end
+
 function net.WritePlayer(ply)
 	if IsValid(ply) then 
 		net.WriteUInt(ply:EntIndex(), 7)
@@ -26,20 +59,19 @@ function net.ReadPlayer()
 	return Entity(i)
 end
 
-CreateConVar("prone_compatibility", "0", {FCVAR_REPLICATED, FCVAR_ARCHIVE}, "Enable this to gurantee model support. This feature is experimental and probably unstable.")
-cvars.AddChangeCallback("prone_compatibility", function(convar, old, new)
-	MsgC(Color(240, 20, 20), "Change the map to ".. (new == "1" and "enable" or "disable") .." compatibility mode!\n")
-end)
-
 hook.Add("Initialize", "Prone.Initialize", function()
-	local compatibility = GetConVar("prone_compatibility"):GetBool() == true or GAMEMODE.DerivedFrom == "clockwork" or GAMEMODE.DerivedFrom == "nutscript"
-
-	function prone.IsCompatibility()
-		return compatibility
-	end
-
 	if SERVER then
 		resource.AddWorkshop("775573383")
+
+		CreateConVar("prone_compatibility", "0", {FCVAR_REPLICATED, FCVAR_ARCHIVE}, "Enable this to gurantee model support. This feature is experimental and probably unstable.")
+		cvars.AddChangeCallback("prone_compatibility", function(convar, old, new)
+			MsgC(Color(240, 20, 20), "Change the map to ".. (new == "1" and "enable" or "disable") .." compatibility mode!\n")
+		end)
+		local compatibility = GetConVar("prone_compatibility"):GetBool() == true or GAMEMODE.DerivedFrom == "clockwork" or GAMEMODE.DerivedFrom == "nutscript"
+
+		function prone.IsCompatibility()
+			return compatibility
+		end
 
 		AddCSLuaFile("prone/config.lua")
 		AddCSLuaFile("prone/sh_prone.lua")

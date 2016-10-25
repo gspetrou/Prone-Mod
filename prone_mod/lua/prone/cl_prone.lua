@@ -48,14 +48,6 @@ net.Receive("Prone.Exit", function()
 	end
 end)
 
-net.Receive("Prone.EndAnimation", function()
-	local ply = net.ReadPlayer()
-
-	if IsValid(ply) then
-		ply:AnimRestartMainSequence()
-	end
-end)
-
 hook.Add("InitPostEntity", "Prone.WaitForInitialization", function()
 	net.Start("Prone.PlayerFullyLoaded")
 	net.SendToServer()
@@ -211,45 +203,29 @@ concommand.Add("prone_config", function()
 	end
 end)
 
-if prone.IsCompatibility() then
-	function prone.CreateFakeModel(ply, model, clr, bodygrp, plyskin, playercolor)
-		ply.prone.cl_model = ClientsideModel(model, clr == color_white and RENDERGROUP_OPAQUE or RENDERGROUP_TRANSLUCENT)
-		ply.prone.cl_model.pronemodel = true
-		ply.prone.cl_model:SetOwner(ply)
-		ply.prone.cl_model:SetParent(ply)
-		ply.prone.cl_model:AddEffects(EF_BONEMERGE)
 
-		ply.prone.cl_model:Spawn()
-		ply.prone.cl_model:Activate()
+function prone.CreateFakeModel(ply, model, clr, bodygrp, plyskin, playercolor)
+	ply.prone.cl_model = ClientsideModel(model, clr == color_white and RENDERGROUP_OPAQUE or RENDERGROUP_TRANSLUCENT)
+	ply.prone.cl_model.pronemodel = true
+	ply.prone.cl_model:SetOwner(ply)
+	ply.prone.cl_model:SetParent(ply)
+	ply.prone.cl_model:AddEffects(EF_BONEMERGE)
 
-		ply.prone.cl_model:SetColor(clr)
-		ply.prone.cl_model:SetBodyGroups(bodygrp)
+	ply.prone.cl_model:Spawn()
+	ply.prone.cl_model:Activate()
 
-		ply.prone.cl_model:SetSkin(plyskin)
-		ply.prone.cl_model.GetPlayerColor = function()
-			return playercolor
-		end
+	ply.prone.cl_model:SetColor(clr)
+	ply.prone.cl_model:SetBodyGroups(bodygrp)
+
+	ply.prone.cl_model:SetSkin(plyskin)
+	ply.prone.cl_model.GetPlayerColor = function()
+		return playercolor
 	end
-
-	timer.Create("Prone.ManageFakeModels", 1, 0, function()
-		for i, v in ipairs(player.GetAll()) do
-			if IsValid(v.prone.cl_model) then
-				if v.prone.cl_model:GetParent() ~= v then
-					v.prone.cl_model:SetParent(v)
-				end
-
-				if not v:Alive() then
-					v.prone.cl_model:Remove()
-					v.prone.cl_model = nil
-				end
-			end
-		end
-	end)
-
-	net.Receive("Prone.UpdateModel", function()
-		local ply, model = net.ReadPlayer(), net.ReadString()
-		if IsValid(ply) and IsValid(ply.prone.cl_model) then
-			ply.prone.cl_model:SetModel(model)
-		end
-	end)
 end
+
+net.Receive("Prone.UpdateModel", function()
+	local ply, model = net.ReadPlayer(), net.ReadString()
+	if IsValid(ply) and IsValid(ply.prone.cl_model) then
+		ply.prone.cl_model:SetModel(model)
+	end
+end)
