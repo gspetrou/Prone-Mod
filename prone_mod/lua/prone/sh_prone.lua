@@ -188,6 +188,6 @@ end)
 
 hook.Add("TTTPlayerSpeed", "Prone.RestrictMovement", function(ply)
 	if ply:IsProne() then
-		return prone.ProneSpeed/220	-- 220 is the default run speed in TTT
+		return prone.config.MoveSpeed/220	-- 220 is the default run speed in TTT
 	end
 end)
