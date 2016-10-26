@@ -1,12 +1,14 @@
 -- Copyright 2016 George "Stalker" Petrou, enjoy!
-util.AddNetworkString("Prone.RequestedProne")
+util.AddNetworkString("Prone.RequestProne")
 util.AddNetworkString("Prone.GetUpWarning")
 util.AddNetworkString("Prone.Entered")
-util.AddNetworkString("Prone.EndAnimation")
 util.AddNetworkString("Prone.Exit")
 util.AddNetworkString("Prone.PlayerFullyLoaded")
+util.AddNetworkString("Prone.ResetMainAnimation")
 
-net.Receive("Prone.RequestedProne", function(_, ply)
+local compatibility_mode = prone.IsCompatibility()
+
+net.Receive("Prone.RequestProne", function(_, ply)
 	if ply.prone.lastrequest <= CurTime() then
 		prone.Handle(ply)
 		ply.prone.lastrequest = CurTime() + 1.25
@@ -84,7 +86,7 @@ function prone.Handle(ply)
 			end
 		end
 	else
-		if ply:GetMoveType() ~= MOVETYPE_NOCLIP and ply:IsFlagSet(FL_ONGROUND) and ply:WaterLevel() < 1 then
+		if ply:GetMoveType() ~= MOVETYPE_NOCLIP and ply:IsFlagSet(FL_ONGROUND) and ply:WaterLevel() <= 1 then
 			local hookresult = hook.Call("Prone.CanEnter", nil, ply) == nil and false or true
 			if hookresult then
 				prone.Enter(ply)
@@ -98,8 +100,7 @@ function prone.Enter(ply)
 		return
 	end
 
-	local compatability = prone.IsCompatibility()
-	if compatability then
+	if compatibility_mode then
 		-- We store their old info here
 		local numbodygroups = ply:GetNumBodyGroups()
 		local body_groups = ""
@@ -138,7 +139,7 @@ function prone.Enter(ply)
 
 	net.Start("Prone.Entered")
 		net.WritePlayer(ply)
-		if compatability then
+		if compatibility_mode then
 			net.WriteString(ply.prone.cl_modeldata.model)
 			local c = ply.prone.cl_modeldata.color
 			net.WriteColor(Color(c.r, c.g, c.b, c.a))
@@ -176,10 +177,10 @@ function prone.End(ply, forced)
 	local length = 0
 
 	if forced ~= true then
-		net.Start("Prone.EndAnimation")
+		net.Start("Prone.ResetMainAnimation")
 			net.WritePlayer(ply)
 		net.Broadcast()
-
+		
 		local seq
 		if not ply:Crouching() then
 			seq = prone.animations.gettingup
@@ -214,8 +215,7 @@ function prone.Exit(ply)
 	ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked)
 	ply:ResetHull()
 
-	local compatability = prone.IsCompatibility()
-	if compatability then
+	if compatibility_mode then
 		ply:SetViewOffset(ply.prone.cl_modeldata.viewoffset)
 		ply:SetViewOffsetDucked(ply.prone.cl_modeldata.viewoffset_ducked)
 		ply:SetModel(ply.prone.cl_modeldata.model)
@@ -228,7 +228,7 @@ function prone.Exit(ply)
 
 	net.Start("Prone.Exit")
 		net.WritePlayer(ply)
-		if compatability then
+		if compatibility_mode then
 			net.WriteString(ply.prone.cl_modeldata.model)
 			local c = ply.prone.cl_modeldata.color
 			net.WriteColor(Color(c.r, c.g, c.b, c.a))
@@ -254,9 +254,9 @@ net.Receive("Prone.PlayerFullyLoaded", function(_, ply)
 	if #proneplayers > 0 then
 		net.Start("Prone.PlayerFullyLoaded")
 			net.WriteUInt(#proneplayers, 7)
-			for i, v in ipairs(proneplayers) do
-				net.WritePlayer(v)
-				if prone.IsCompatibility() then
+			if compatibility_mode then
+				for i, v in ipairs(proneplayers) do
+					net.WritePlayer(v)
 					net.WriteString(ply.prone.cl_modeldata.model)
 					local c = ply.prone.cl_modeldata.color
 					net.WriteColor(Color(c.r, c.g, c.b, c.a))
@@ -264,7 +264,12 @@ net.Receive("Prone.PlayerFullyLoaded", function(_, ply)
 					net.WriteVector(ply.prone.cl_modeldata.proxycolor)
 					net.WriteUInt(ply.prone.cl_modeldata.skin, 5)
 				end
+			else
+				for i, v in ipairs(proneplayers) do
+					net.WritePlayer(v)
+				end
 			end
+
 		net.Send(ply)
 	end
 end)
@@ -299,7 +304,7 @@ timer.Create("Prone.Manage", 1, 0, function()
 	end
 end)
 
-if prone.IsCompatibility() then
+if compatibility_mode then
 	util.AddNetworkString("Prone.UpdateModel")
 
 	function prone.UpdateFakeModel(ply, model)
@@ -309,22 +314,22 @@ if prone.IsCompatibility() then
 		net.Broadcast()
 	end
 
-	local Derived = GAMEMODE.DerivedFrom
-	local hookname = "PlayerLoadout"
-
-	if Derived == "nutscript" then
+	local hookname
+	if DerivGAMEMODE == "nutscript" then
 		hookname = "PostPlayerLoadout"
-	elseif Derived ~= "clockwork" then
-		hook.Add(hookname, "Prone.LoadoutFix", function(ply)
-			if ply:IsProne() then
-				ply.prone.cl_modeldata.model = ply:GetModel()
-				prone.UpdateProneModel(ply, ply.prone.cl_modeldata.model)
-
-				ply:SetModel("models/player/kleiner.mdl")
-				ply.prone.cl_modeldata.color = ply:GetColor()
-			end
-		end)
+	else
+		hookname = "PlayerLoadout"
 	end
+	
+	hook.Add(hookname, "Prone.LoadoutFix", function(ply)
+		if ply:IsProne() then
+			ply.prone.cl_modeldata.model = ply:GetModel()
+			prone.UpdateProneModel(ply, ply.prone.cl_modeldata.model)
+
+			ply:SetModel("models/player/kleiner.mdl")
+			ply.prone.cl_modeldata.color = ply:GetColor()
+		end
+	end)
 
 	hook.Add("TTTPrepareRound", "Prone_FixRemove", function()
 		for i, v in ipairs(player.GetAll()) do

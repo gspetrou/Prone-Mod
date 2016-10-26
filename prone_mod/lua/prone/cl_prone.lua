@@ -27,16 +27,17 @@ end)
 
 net.Receive("Prone.Exit", function()
 	local ply = net.ReadPlayer()
+	local compatibility_mode = prone.IsCompatibility()
 
 	if IsValid(ply) then
 		ply:AnimRestartMainSequence()
 		ply:ResetHull()	-- For prediction
 
-		if prone.IsCompatibility() and IsValid(ply.prone.cl_model) then
+		if compatibility_mode and IsValid(ply.prone.cl_model) then
 			ply.prone.cl_model:Remove()
 			ply.prone.cl_model = nil
 		end
-	elseif prone.IsCompatibility() then
+	elseif compatibility_mode then
 		for i, v in ipairs(ents.FindByClass("class C_BaseFlex")) do
 			local owner = v:GetOwner()
 
@@ -48,7 +49,7 @@ net.Receive("Prone.Exit", function()
 	end
 end)
 
-hook.Add("InitPostEntity", "Prone.WaitForInitialization", function()
+hook.Add("InitPostEntity", "Prone.PlayerFullyLoaded", function()
 	net.Start("Prone.PlayerFullyLoaded")
 	net.SendToServer()
 end)
@@ -70,8 +71,15 @@ net.Receive("Prone.PlayerFullyLoaded", function()
 	end
 end)
 
+net.Receive("Prone.ResetMainAnimation", function()
+	local ply = net.ReadPlayer()
+	if IsValid(ply) then
+		ply:AnimRestartMainSequence()
+	end
+end)
+
 function prone.Request()
-	net.Start("Prone.RequestedProne")
+	net.Start("Prone.RequestProne")
 	net.SendToServer()
 end
 
@@ -87,7 +95,7 @@ local doubletap_shouldsend = true
 local doubletap_keypress_resettime = false
 hook.Add("Think", "Prone.BindkeySingleClick", function()
 	-- The shit I do so that kiddies can use their beloved KEY enums
-	if bindkey_enabled:GetBool() and LocalPlayer():IsFlagSet(FL_ONGROUND) and not system.IsLinux() and system.HasFocus() and not vgui.GetKeyboardFocus() and not gui.IsGameUIVisible() and not gui.IsConsoleVisible() then
+	if (system.IsLinux() or system.HasFocus()) and bindkey_enabled:GetBool() and LocalPlayer():IsFlagSet(FL_ONGROUND) and not vgui.GetKeyboardFocus() and not gui.IsGameUIVisible() and not gui.IsConsoleVisible() then
 		if input.IsKeyDown(bindkey_key:GetInt()) then
 			key_waspressed = true
 

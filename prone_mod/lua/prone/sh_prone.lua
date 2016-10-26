@@ -38,6 +38,10 @@ function PLAYER:ProneIsGettingUp()
 	return self:GetProneAnimationState() == PRONE_GETTINGUP
 end
 
+function PLAYER:ProneIsGettingUp()
+	return self:GetProneAnimationState() == PRONE_GETTINGDOWN
+end
+
 -- This is stupid but more optimized.
 local GetUpdateAnimationRate = {
 	[PRONE_GETTINGDOWN] = 1,
@@ -153,9 +157,11 @@ hook.Add("SetupMove", "Prone.RestrictMovement", function(ply, cmd)
 			return
 		else
 			cmd:SetMaxClientSpeed(prone.config.MoveSpeed)
+			cmd:SetMaxSpeed(prone.config.MoveSpeed)
 		end
 
-		if cmd:KeyDown(IN_ATTACK) or cmd:KeyDown(IN_ATTACK2) and prone.config.MoveShoot_Restrict then
+		local attack1 = cmd:KeyDown(IN_ATTACK)
+		if attack1 or cmd:KeyDown(IN_ATTACK2) and prone.config.MoveShoot_Restrict then
 			local weapon = ply:GetActiveWeapon()
 			if not IsValid(weapon) then
 				return
@@ -164,7 +170,7 @@ hook.Add("SetupMove", "Prone.RestrictMovement", function(ply, cmd)
 			local weaponclass = weapon:GetClass()
 			if not prone.config.MoveShoot_Whitelist[weaponclass] then
 				local ShouldStopMovement = true
-				if cmd:KeyDown(IN_ATTACK) then
+				if attack1 then
 					ShouldStopMovement = weapon:Clip1() > 0
 				else
 					ShouldStopMovement = weapon:Clip2() > 0
