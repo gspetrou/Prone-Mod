@@ -103,13 +103,13 @@ local GetMainActivityAnimation = {
 		else
 			ply:SetProneAnimationState(PRONE_INPRONE)
 
-			return prone.animations.passive
+			return prone.animations.gettingdown
 		end
 	end,
 
 	[PRONE_GETTINGUP] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
-
+		
 			local UpView = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))
 			ply:SetViewOffset(UpView)
 			ply:SetViewOffsetDucked(UpView)
@@ -117,6 +117,7 @@ local GetMainActivityAnimation = {
 			return prone.animations.gettingup
 		else
 			ply:SetProneAnimationState(PRONE_EXITTINGPRONE)
+			return prone.animations.gettingup
 		end
 	end,
 
@@ -144,6 +145,13 @@ local GetMainActivityAnimation = {
 				ply:SetViewOffsetDucked(Vector(0, 0, 18))
 			end
 		end
+		
+		return prone.animations.passive
+	end,
+	
+	-- Just in case this gets called for some reason.
+	[PRONE_NOTINPRONE] = function()
+		return prone.animations.passive
 	end
 }
 hook.Add("CalcMainActivity", "Prone.Animations", function(ply, velocity)
