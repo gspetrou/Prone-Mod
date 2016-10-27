@@ -1,4 +1,8 @@
--- Copyright 2016 George "Stalker" Petrou, enjoy!
+
+------------------------------------------------------------------
+-- Define a bunch of really important meta functions we'll be using
+-------------------------------------------------------------------
+
 local PLAYER = FindMetaTable("Player")
 PLAYER.prone = {}
 
@@ -42,7 +46,10 @@ function PLAYER:ProneIsGettingUp()
 	return self:GetProneAnimationState() == PRONE_GETTINGDOWN
 end
 
--- This is stupid but more optimized.
+
+------------------------------------------------------------------
+-- Handles pose parameters and the playback rate of the animations
+------------------------------------------------------------------
 local GetUpdateAnimationRate = {
 	[PRONE_GETTINGDOWN] = 1,
 	[PRONE_GETTINGUP] = 1
@@ -78,10 +85,12 @@ hook.Add("UpdateAnimation", "Prone.Animations", function(ply, velocity, maxSeqGr
 	end
 end)
 
+----------------------------------------
+-- The animation powerhouse of the addon
+----------------------------------------
 local function GetSequenceForWeapon(holdtype, ismoving)
 	return ismoving and prone.animations.WeaponAnims.moving[holdtype] or prone.animations.WeaponAnims.idle[holdtype]
 end
-
 local GetMainActivityAnimation = {
 	[PRONE_GETTINGDOWN] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
@@ -90,7 +99,7 @@ local GetMainActivityAnimation = {
 			ply:SetViewOffset(DownView)
 			ply:SetViewOffsetDucked(DownView)
 
-			return ply:Crouching() and prone.animations.gettingdown_crouch or prone.animations.gettingdown
+			return prone.animations.gettingdown
 		else
 			ply:SetProneAnimationState(PRONE_INPRONE)
 
@@ -105,7 +114,7 @@ local GetMainActivityAnimation = {
 			ply:SetViewOffset(UpView)
 			ply:SetViewOffsetDucked(UpView)
 
-			return ply:Crouching() and prone.animations.gettingup_crouch or prone.animations.gettingup
+			return prone.animations.gettingup
 		else
 			ply:SetProneAnimationState(PRONE_EXITTINGPRONE)
 		end
@@ -129,7 +138,7 @@ local GetMainActivityAnimation = {
 		if SERVER then
 			prone.Exit(ply)
 
-			if not ply:CanExitProne() then
+			if not prone.CanExit(ply) then
 				prone.StartProne(ply)
 				ply:SetViewOffset(Vector(0, 0, 18))
 				ply:SetViewOffsetDucked(Vector(0, 0, 18))
@@ -138,24 +147,26 @@ local GetMainActivityAnimation = {
 	end
 }
 hook.Add("CalcMainActivity", "Prone.Animations", function(ply, velocity)
-	if ply:IsPlayer() and ply:IsProne() then
+	if IsValid(ply) and ply:IsPlayer() and ply:IsProne() then
 		local seq = GetMainActivityAnimation[ply:GetProneAnimationState()](ply, velocity)
 
 		return -1, ply:LookupSequence(seq or "")
 	end
 end)
 
+-- Restrict their movement.
 hook.Add("SetupMove", "Prone.RestrictMovement", function(ply, cmd)
 	if ply:IsProne() then
 		if cmd:KeyDown(IN_JUMP) then
 			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))	-- Disables jumping, thanks meep
 		end
 
+		-- If they are getting up or down then set their speed to TransitionSpeed
 		if ply:GetProneAnimationLength() >= CurTime() then
 			cmd:SetForwardSpeed(prone.config.TransitionSpeed)
 			cmd:SetSideSpeed(prone.config.TransitionSpeed)
 			return
-		else
+		else	-- If they are in prone set their speed to MoveSpeed
 			cmd:SetMaxClientSpeed(prone.config.MoveSpeed)
 			cmd:SetMaxSpeed(prone.config.MoveSpeed)
 		end
@@ -186,6 +197,7 @@ hook.Add("SetupMove", "Prone.RestrictMovement", function(ply, cmd)
 	end
 end)
 
+-- TTT Movement support
 hook.Add("TTTPlayerSpeed", "Prone.RestrictMovement", function(ply)
 	if ply:IsProne() then
 		return prone.config.MoveSpeed/220	-- 220 is the default run speed in TTT

@@ -62,10 +62,12 @@ prone.config.Darkrp_BypassRanks = {
 prone.config.HullHeight = 24
 
 prone.animations.gettingdown = "pronedown_stand"
-prone.animations.gettingdown_crouch = "pronedown_crouch"
 prone.animations.gettingup = "proneup_stand"
-prone.animations.gettingup_crouch = "proneup_crouch"
 prone.animations.passive = "prone_walkpassive"
+
+-- These two aren't used right now.
+prone.animations.gettingdown_crouch = "pronedown_crouch"
+prone.animations.gettingup_crouch = "proneup_crouch"
 
 prone.animations.WeaponAnims = {
 	moving = {

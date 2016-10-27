@@ -1,43 +1,16 @@
--- Copyright 2016 George "Stalker" Petrou, enjoy!
+---------------------
+-- Setup net messages
+---------------------
 util.AddNetworkString("Prone.RequestProne")
 util.AddNetworkString("Prone.GetUpWarning")
 util.AddNetworkString("Prone.Entered")
 util.AddNetworkString("Prone.Exit")
-util.AddNetworkString("Prone.PlayerFullyLoaded")
 util.AddNetworkString("Prone.ResetMainAnimation")
 
-local compatibility_mode = prone.IsCompatibility()
-
-net.Receive("Prone.RequestProne", function(_, ply)
-	if ply.prone.lastrequest <= CurTime() then
-		prone.Handle(ply)
-		ply.prone.lastrequest = CurTime() + 1.25
-	end
-end)
-
-local PLAYER = FindMetaTable("Player")
-function PLAYER:CanExitProne()
-	local tr = util.TraceHull{
-		start = self:GetPos(),
-		endpos = self:GetPos(),
-		filter = self,
-		mins = Vector(-16, -16, 0), -- make this use obbs as reference
-		maxs = Vector(16, 16, 78)
-	}
-
-	if tr.Hit then
-		net.Start("Prone.GetUpWarning")
-		net.Send(self)
-	end
-
-	return not tr.Hit
-end
-
-function prone.Handle(ply)
-	if not IsValid(ply) or not ply:Alive() then
-		return
-	end
-
+------------------------------------------------------------
+-- Define the main functions for entering and exitting prone
+------------------------------------------------------------
+local function ProneGamemodeChecks(ply)
 	if GAMEMODE_NAME == "darkrp" or GAMEMODE.DerivedFrom == "darkrp" then
 		local should_check_job = true
 		local rank = ply:GetUserGroup()
@@ -56,52 +29,101 @@ function prone.Handle(ply)
 					if prone.config.Darkrp_IsWhitelist then
 						jobfound = true
 					else
-						return
+						return false
 					end
 					break
 				end
 			end
 
 			if not jobfound then
-				return
+				return false
 			end
 		end
 	elseif GAMEMODE_NAME == "prop_hunt" or GAMEMODE.DerivedFrom == "prop_hunt" then
 		local preptime = GetGlobalFloat("RoundStartTime", 0) + HUNTER_BLINDLOCK_TIME
 
 		if not GetGlobalBool("InRound", false) or preptime > CurTime() or ply:Team() ~= TEAM_HUNTERS then
-			return
+			return false
 		end
 	elseif GAMEMODE.DerivedFrom == "clockwork" then
 		if ply:IsRagdolled() then
-			return
+			return false
 		end
 	end
 
+	return true
+end
+
+function prone.CanExit(ply)
+	-- Check if there is enough space to get up
+	local tr = util.TraceHull{
+		start = ply:GetPos(),
+		endpos = ply:GetPos(),
+		filter = ply,
+		mins = Vector(-16, -16, 0),
+		maxs = Vector(16, 16, 78)
+	}
+	if tr.Hit then
+		net.Start("Prone.GetUpWarning")
+		net.Send(ply)
+
+		return not tr.Hit
+	end
+
+	-- See if other addons want to restrict this.
+	local hookresult = hook.Call("Prone.CanExit", nil, ply)
+	if hookresult ~= nil then
+		return hookresult
+	end
+
+	-- If not then check for the active gamemode.
+	return ProneGamemodeChecks(ply)
+end
+
+function prone.CanEnter(ply)
+	local hookresult = hook.Call("Prone.CanEnter", nil, ply)
+	if hookresult ~= nil then
+		return hookresult
+	elseif ply:GetMoveType() == MOVETYPE_NOCLIP or not ply:OnGround() or ply:WaterLevel() > 1 then
+		return false
+	end
+
+	return ProneGamemodeChecks(ply)
+end
+
+function prone.Handle(ply)
+	if not IsValid(ply) or not ply:Alive() then
+		return
+	end
+
 	if ply:IsProne() then
-		if ply:CanExitProne() then
-			local hookresult = hook.Call("Prone.CanExit", nil, ply) == nil and false or true
-			if hookresult then
-				prone.End(ply)
-			end
+		if prone.CanExit(ply) then
+			prone.End(ply)
 		end
 	else
-		if ply:GetMoveType() ~= MOVETYPE_NOCLIP and ply:IsFlagSet(FL_ONGROUND) and ply:WaterLevel() <= 1 then
-			local hookresult = hook.Call("Prone.CanEnter", nil, ply) == nil and false or true
-			if hookresult then
-				prone.Enter(ply)
-			end
+		if prone.CanEnter(ply) then
+			prone.Enter(ply)
 		end
 	end
 end
 
-function prone.Enter(ply)
-	if not IsValid(ply) then
-		return
+net.Receive("Prone.RequestProne", function(_, ply)
+	if ply.prone.lastrequest <= CurTime() then
+		prone.Handle(ply)
+		ply.prone.lastrequest = CurTime() + 1.25
 	end
+end)
 
-	if compatibility_mode then
-		-- We store their old info here
+-- This will enter a player into prone
+function prone.Enter(ply)
+	-- Store some data for when they leave prone.
+	ply.prone.oldviewoffset = ply:GetViewOffset()
+	ply.prone.oldviewoffset_ducked = ply:GetViewOffsetDucked()
+
+	net.Start("Prone.Entered")
+	net.WritePlayer(ply)
+
+	if prone.IsCompatibility() then
 		local numbodygroups = ply:GetNumBodyGroups()
 		local body_groups = ""
 		for i = 0, numbodygroups do
@@ -112,110 +134,95 @@ function prone.Enter(ply)
 			model = ply:GetModel(),
 			color = ply:GetColor(),
 			rendermode = ply:GetRenderMode(),
-			viewoffset = ply:GetViewOffset(),
-			viewoffset_ducked = ply:GetViewOffsetDucked(),
+			viewoffset = ply.prone.oldviewoffset,
+			viewoffset_ducked = ply.prone.oldviewoffset_ducked,
 			proxycolor = ply:GetPlayerColor(),
 			skin = ply:GetSkin(),
 			bodygroups = body_groups
 		}
 
-		-- Now override it with our stuff here
+		-- Make some necessary changes for compatibility mode.
 		ply:SetRenderMode(RENDERMODE_TRANSALPHA)
 		ply:SetColor(Color(255, 255, 255, 0))
 		ply:SetModel("models/player/kleiner.mdl")
+
+		-- Network some extra stuff.
+		net.WriteString(ply.prone.cl_modeldata.model)
+		local c = ply.prone.cl_modeldata.color
+		net.WriteColor(Color(c.r, c.g, c.b, c.a))
+		net.WriteString(ply.prone.cl_modeldata.bodygroups)
+		net.WriteVector(ply.prone.cl_modeldata.proxycolor)
+		net.WriteUInt(ply.prone.cl_modeldata.skin, 5)
 	end
 
+	net.Broadcast()	-- Send out the netmessage started above the previous if statement.
+
+	-- Now make our changes
+	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
+	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
+
+	-- Pick which animation to use.
 	ply.prone.starttime = CurTime()
-	local seq
-	if not ply:Crouching() then
-		seq = prone.animations.gettingdown
-	else
-		seq = prone.animations.gettingdown_crouch
-	end
+	local seq = prone.animations.gettingdown
+	--if ply:Crouching() then
+	--	seq = prone.animations.gettingdown_crouch
+	--end
 
+	-- Take note of how long that animation takes to play.
 	local length = ply:SequenceDuration(ply:LookupSequence(seq))
 	ply.prone.getdowntime = length + ply.prone.starttime
 	ply:SetProneAnimationLength(ply.prone.getdowntime)
 
-	net.Start("Prone.Entered")
-		net.WritePlayer(ply)
-		if compatibility_mode then
-			net.WriteString(ply.prone.cl_modeldata.model)
-			local c = ply.prone.cl_modeldata.color
-			net.WriteColor(Color(c.r, c.g, c.b, c.a))
-			net.WriteString(ply.prone.cl_modeldata.bodygroups)
-			net.WriteVector(ply.prone.cl_modeldata.proxycolor)
-			net.WriteUInt(ply.prone.cl_modeldata.skin, 5)
-		end
-	net.Broadcast()
-
-	ply.prone.oldviewoffset = ply:GetViewOffset()
-	ply.prone.oldviewoffset_ducked = ply:GetViewOffsetDucked()
-
+	-- Make sure they can't shoot while prone.
 	local weapon = ply:GetActiveWeapon()
 	if IsValid(weapon) then
 		weapon:SetNextPrimaryFire(ply.prone.getdowntime)
 		weapon:SetNextSecondaryFire(ply.prone.getdowntime)
 	end
 
-	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-
-	ply:AnimRestartMainSequence()
 	ply:SetProneAnimationState(PRONE_GETTINGDOWN)
-
 	hook.Call("Prone.OnPlayerEntered", nil, ply, length)
 end
 
--- Gets up and exits prone, unless forced is true. Then it wont play the get up animation.
-function prone.End(ply, forced)
-	if not IsValid(ply) then
-		return
-	end
-
+-- Makes the player get up and exit prone. Later calls prone.Exit.
+function prone.End(ply)
 	ply.prone.endtime = CurTime()
-	local length = 0
+	
+	-- We do this so then next animation doesn't start mid-way through.
+	ply:AnimRestartMainSequence()
+	net.Start("Prone.ResetMainAnimation")
+		net.WritePlayer(ply)
+	net.Broadcast()
 
-	if forced ~= true then
-		net.Start("Prone.ResetMainAnimation")
-			net.WritePlayer(ply)
-		net.Broadcast()
-		
-		local seq
-		if not ply:Crouching() then
-			seq = prone.animations.gettingup
-		else
-			seq = prone.animations.gettingup_crouch
-		end
+	-- Choose either the standing or crouching get up animation.
+	ply.prone.starttime = CurTime()
+	local seq = prone.animations.gettingup
+	--if ply:Crouching() then
+	--	seq = prone.animations.gettingup_crouch
+	--end
 
-		length = ply:SequenceDuration(ply:LookupSequence(seq))
-		ply.prone.getuptime = length + ply.prone.endtime - .1
-		ply:SetProneAnimationLength(ply.prone.getuptime)
+	-- Record the time.
+	ply.prone.getuptime = ply:SequenceDuration(ply:LookupSequence(seq)) + ply.prone.endtime
+	ply:SetProneAnimationLength(ply.prone.getuptime)
 
-		local weapon = ply:GetActiveWeapon()
-		if IsValid(weapon) then
-			weapon:SetNextPrimaryFire(ply.prone.getuptime)
-			weapon:SetNextSecondaryFire(ply.prone.getuptime)
-		end
-
-		ply:AnimRestartMainSequence()
-		ply:SetProneAnimationState(PRONE_GETTINGUP)
-	else
-		prone.Exit(ply)
+	-- Make sure they can't shoot while getting up.
+	local weapon = ply:GetActiveWeapon()
+	if IsValid(weapon) then
+		weapon:SetNextPrimaryFire(ply.prone.getuptime)
+		weapon:SetNextSecondaryFire(ply.prone.getuptime)
 	end
+
+	-- Play the animation.
+	ply:SetProneAnimationState(PRONE_GETTINGUP)
 end
 
--- Actually leaving prone, call Prone.End with the second arguement as true rather than calling this directly.
+-- This makes the player actually leave prone.
 function prone.Exit(ply)
-	if not IsValid(ply) then
-		return
-	end
-
+	-- Reset stuff back to how it was before.
 	ply:SetViewOffset(ply.prone.oldviewoffset)
 	ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked)
 	ply:ResetHull()
-
-	if compatibility_mode then
+	if prone.IsCompatibility() then
 		ply:SetViewOffset(ply.prone.cl_modeldata.viewoffset)
 		ply:SetViewOffsetDucked(ply.prone.cl_modeldata.viewoffset_ducked)
 		ply:SetModel(ply.prone.cl_modeldata.model)
@@ -226,9 +233,10 @@ function prone.Exit(ply)
 		ply:SetBodyGroups(ply.prone.cl_modeldata.body_groups)
 	end
 
+	-- Send data over to the client so that they can reset to how they were before.
 	net.Start("Prone.Exit")
 		net.WritePlayer(ply)
-		if compatibility_mode then
+		if prone.IsCompatibility() then
 			net.WriteString(ply.prone.cl_modeldata.model)
 			local c = ply.prone.cl_modeldata.color
 			net.WriteColor(Color(c.r, c.g, c.b, c.a))
@@ -243,70 +251,39 @@ function prone.Exit(ply)
 	hook.Call("Prone.OnPlayerExitted", nil, ply)
 end
 
-net.Receive("Prone.PlayerFullyLoaded", function(_, ply)
-	local proneplayers = {}
-	for i, v in ipairs(player.GetAll()) do
-		if v:IsProne() then
-			table.insert(proneplayers, v)
-		end
-	end
-
-	if #proneplayers > 0 then
-		net.Start("Prone.PlayerFullyLoaded")
-			net.WriteUInt(#proneplayers, 7)
-			if compatibility_mode then
-				for i, v in ipairs(proneplayers) do
-					net.WritePlayer(v)
-					net.WriteString(ply.prone.cl_modeldata.model)
-					local c = ply.prone.cl_modeldata.color
-					net.WriteColor(Color(c.r, c.g, c.b, c.a))
-					net.WriteString(ply.prone.cl_modeldata.bodygroups)
-					net.WriteVector(ply.prone.cl_modeldata.proxycolor)
-					net.WriteUInt(ply.prone.cl_modeldata.skin, 5)
-				end
-			else
-				for i, v in ipairs(proneplayers) do
-					net.WritePlayer(v)
-				end
-			end
-
-		net.Send(ply)
-	end
-end)
-
+-- Checks to properly exit prone.
 hook.Add("DoPlayerDeath", "Prone.ExitOnDeath", function(ply)
 	if ply:IsProne() then
-		prone.End(ply, true)
+		prone.Exit(ply)
 	end
 end)
-
 hook.Add("PlayerNoClip", "Prone.ExitOnNoclip", function(ply)
-	if IsFirstTimePredicted() and ply.InProne then
-		prone.EndProne(ply, true)
+	if IsFirstTimePredicted() and ply:IsProne() then
+		prone.Exit(ply)
 	end
 end)
-
 hook.Add("VehicleMove", "Prone.ExitOnVehicleEnter", function(ply)
 	if ply:IsProne() then
-		prone.Prone(ply, true)
+		prone.Exit(ply)
 	end
 end)
 
+-- Use a timer to check if a player should exit prone.
+-- This isn't a good solution but its the only one.
+local ipairs = ipairs
 timer.Create("Prone.Manage", 1, 0, function()
 	for i, v in ipairs(player.GetAll()) do
-		if v:IsProne() then
-			if v:GetMoveType() == MOVETYPE_NOCLIP then
-				prone.End(v, true)
-			elseif v:WaterLevel() > 1 and not v:ProneIsGettingUp() then
-				prone.End(v)
-			end
+		if v:IsProne() and v:WaterLevel() > 1 and not v:ProneIsGettingUp() then
+			prone.Exit(v)
 		end
 	end
 end)
 
-if compatibility_mode then
+if prone.IsCompatibility() then
+	util.AddNetworkString("Prone.PlayerInitialized")
 	util.AddNetworkString("Prone.UpdateModel")
 
+	-- Updates the fake clientside model that is bonemerged to the prone players.
 	function prone.UpdateFakeModel(ply, model)
 		net.Start("Prone.UpdateModel")
 			net.WritePlayer(ply)
@@ -314,23 +291,47 @@ if compatibility_mode then
 		net.Broadcast()
 	end
 
-	local hookname
-	if DerivGAMEMODE == "nutscript" then
-		hookname = "PostPlayerLoadout"
-	else
-		hookname = "PlayerLoadout"
-	end
-	
-	hook.Add(hookname, "Prone.LoadoutFix", function(ply)
+	-- Clean the fake models of disconnecting players.
+	hook.Add("PlayerDisconnected", "Prone.CleanFakeModel", function(ply)
 		if ply:IsProne() then
-			ply.prone.cl_modeldata.model = ply:GetModel()
-			prone.UpdateProneModel(ply, ply.prone.cl_modeldata.model)
-
-			ply:SetModel("models/player/kleiner.mdl")
-			ply.prone.cl_modeldata.color = ply:GetColor()
+			net.Start("Prone.Exit")
+				net.WriteEntity(ply)
+			net.Broadcast()
 		end
 	end)
 
+	-- When a player tells us that they are fully loaded then tell them who is prone.
+	-- This isn't really exploitable. If they choose not to tell us they are fully loaded all that they
+	-- are doing is messing up prediction for themselves till the prone player eventually leaves prone.
+	net.Receive("Prone.PlayerInitialized", function(_, ply)
+		-- Get all the prone players.
+		local proneplayers = {}
+		for i, v in ipairs(player.GetAll()) do
+			if v:IsProne() then
+				table.insert(proneplayers, v)
+			end
+		end
+
+		if #proneplayers == 0 then
+			return
+		end
+
+		net.Start("Prone.PlayerInitialized")
+			net.WriteUInt(#proneplayers, 7)
+			for i, v in ipairs(proneplayers) do
+				net.WritePlayer(v)
+
+				net.WriteString(ply.prone.cl_modeldata.model)
+				local c = ply.prone.cl_modeldata.color
+				net.WriteColor(Color(c.r, c.g, c.b, c.a))
+				net.WriteString(ply.prone.cl_modeldata.bodygroups)
+				net.WriteVector(ply.prone.cl_modeldata.proxycolor)
+				net.WriteUInt(ply.prone.cl_modeldata.skin, 5)
+			end
+		net.Send(ply)
+	end)
+
+	-- TTT support.
 	hook.Add("TTTPrepareRound", "Prone_FixRemove", function()
 		for i, v in ipairs(player.GetAll()) do
 			if v:IsProne() then
@@ -347,11 +348,21 @@ if compatibility_mode then
 		end
 	end)
 
-	hook.Add("PlayerDisconnected", "Prone.CleanFakeModel", function(ply)
-		if ply:IsProne() then
-			net.Start("Prone.Exit")
-				net.WriteEntity(ply)
-			net.Broadcast()
-		end
-	end)
+	local hookname = false
+	if GAMEMODE.DerivedFrom == "nutscript" then
+		hookname = "PostPlayerLoadout"
+	else
+		hookname = "PlayerLoadout"
+	end
+	if hookname then
+		hook.Add(hookname, "Prone.LoadoutFix", function(ply)
+			if ply:IsProne() then
+				ply.prone.cl_modeldata.model = ply:GetModel()
+				prone.UpdateProneModel(ply, ply.prone.cl_modeldata.model)
+
+				ply:SetModel("models/player/kleiner.mdl")
+				ply.prone.cl_modeldata.color = ply:GetColor()
+			end
+		end)
+	end
 end
