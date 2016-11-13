@@ -94,13 +94,15 @@ local GetMainActivityAnimation = {
 	[PRONE_GETTINGDOWN] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
 
-			local DownView = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 24))
+			local DownView = LerpVector(FrameTime() * 4, ply:GetViewOffset(), prone.config.View)
 			ply:SetViewOffset(DownView)
 			ply:SetViewOffsetDucked(DownView)
 
 			return prone.animations.gettingdown
 		else
 			ply:SetProneAnimationState(PRONE_INPRONE)
+			ply:SetViewOffset(prone.config.View)
+			ply:SetViewOffsetDucked(prone.config.View)
 
 			return prone.animations.gettingdown
 		end
@@ -109,13 +111,14 @@ local GetMainActivityAnimation = {
 	[PRONE_GETTINGUP] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
 
-			local UpView = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))
+			local UpView = LerpVector(FrameTime() * 4, ply:GetViewOffset(), Vector(0, 0, 64))
 			ply:SetViewOffset(UpView)
 			ply:SetViewOffsetDucked(UpView)
 
 			return prone.animations.gettingup
 		else
 			ply:SetProneAnimationState(PRONE_EXITTINGPRONE)
+
 			return prone.animations.gettingup
 		end
 	end,

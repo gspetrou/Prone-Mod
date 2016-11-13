@@ -61,6 +61,9 @@ prone.config.Darkrp_BypassRanks = {
 -- Sets the hull height while prone. What you can fit under.
 prone.config.HullHeight = 24
 
+-- Sets how low the player's view will be while prone.
+prone.config.View = Vector(0, 0, 24)
+
 prone.animations.gettingdown = "pronedown_stand"
 prone.animations.gettingup = "proneup_stand"
 prone.animations.passive = "prone_walkpassive"
