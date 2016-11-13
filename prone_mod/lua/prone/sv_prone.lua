@@ -10,6 +10,8 @@ util.AddNetworkString("Prone.ResetMainAnimation")
 ------------------------------------------------------------
 -- Define the main functions for entering and exitting prone
 ------------------------------------------------------------
+
+-- Where general stuff and gamemode specific checks are done.
 local function ProneGamemodeChecks(ply)
 	if GAMEMODE_NAME == "darkrp" or GAMEMODE.DerivedFrom == "darkrp" then
 		local should_check_job = true
@@ -91,6 +93,7 @@ function prone.CanEnter(ply)
 	return ProneGamemodeChecks(ply)
 end
 
+-- Pretty much toggles between the player being in prone and not in prone.
 function prone.Handle(ply)
 	if not IsValid(ply) or not ply:Alive() then
 		return
@@ -270,9 +273,9 @@ end)
 
 -- Use a timer to check if a player should exit prone.
 -- This isn't a good solution but its the only one.
-local ipairs = ipairs
+local ipairs, player_GetAll = ipairs, player.GetAll
 timer.Create("Prone.Manage", 1, 0, function()
-	for i, v in ipairs(player.GetAll()) do
+	for i, v in ipairs(player_GetAll()) do
 		if v:IsProne() and v:WaterLevel() > 1 and not v:ProneIsGettingUp() then
 			prone.Exit(v)
 		end

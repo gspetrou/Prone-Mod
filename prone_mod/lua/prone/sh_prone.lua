@@ -1,8 +1,6 @@
-
 ------------------------------------------------------------------
 -- Define a bunch of really important meta functions we'll be using
 -------------------------------------------------------------------
-
 local PLAYER = FindMetaTable("Player")
 PLAYER.prone = {}
 
@@ -46,6 +44,8 @@ function PLAYER:ProneIsGettingUp()
 	return self:GetProneAnimationState() == PRONE_GETTINGDOWN
 end
 
+-- Micro-Optimizatios!
+local IsValid, CurTime, type, math_min = IsValid, CurTime, type, math.min
 
 ------------------------------------------------------------------
 -- Handles pose parameters and the playback rate of the animations
@@ -57,18 +57,17 @@ local GetUpdateAnimationRate = {
 hook.Add("UpdateAnimation", "Prone.Animations", function(ply, velocity, maxSeqGroundSpeed)
 	if ply:IsProne() then
 		local length = velocity:Length()
-		local movement = 1
-
-		if length > 0.2 then
-			movement = length/maxSeqGroundSpeed
-		end
 
 		local rate = GetUpdateAnimationRate[ply:GetProneAnimationState()]
 		if not rate then
 			if not ply:IsOnGround() and length >= 750 then
 				rate = 0.1
 			else
-				rate = math.min(movement, 2)
+				if length > 0.2 then
+					rate = math_min(length / maxSeqGroundSpeed, 2)
+				else
+					rate = 1
+				end
 			end
 		end
 
@@ -109,7 +108,7 @@ local GetMainActivityAnimation = {
 
 	[PRONE_GETTINGUP] = function(ply)
 		if ply:GetProneAnimationLength() >= CurTime() then
-		
+
 			local UpView = LerpVector(FrameTime()*4, ply:GetViewOffset(), Vector(0, 0, 64))
 			ply:SetViewOffset(UpView)
 			ply:SetViewOffsetDucked(UpView)
@@ -145,10 +144,10 @@ local GetMainActivityAnimation = {
 				ply:SetViewOffsetDucked(Vector(0, 0, 18))
 			end
 		end
-		
+
 		return prone.animations.passive
 	end,
-	
+
 	-- Just in case this gets called for some reason.
 	[PRONE_NOTINPRONE] = function()
 		return prone.animations.passive
@@ -158,7 +157,14 @@ hook.Add("CalcMainActivity", "Prone.Animations", function(ply, velocity)
 	if IsValid(ply) and ply:IsPlayer() and ply:IsProne() then
 		local seq = GetMainActivityAnimation[ply:GetProneAnimationState()](ply, velocity)
 
-		return -1, ply:LookupSequence(seq or "")
+		-- NEVER let this hook's second return parameter be a number less than 0.
+		-- That crashes Linux servers for some reason.
+		local seqid = ply:LookupSequence(seq or "")
+		if type(seqid) == "number" and seqid < 0 then
+			return
+		end
+
+		return -1, seqid or nil
 	end
 end)
 
@@ -208,6 +214,6 @@ end)
 -- TTT Movement support
 hook.Add("TTTPlayerSpeed", "Prone.RestrictMovement", function(ply)
 	if ply:IsProne() then
-		return prone.config.MoveSpeed/220	-- 220 is the default run speed in TTT
+		return prone.config.MoveSpeed / 220	-- 220 is the default run speed in TTT
 	end
 end)

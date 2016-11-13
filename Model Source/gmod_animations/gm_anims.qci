@@ -131,21 +131,21 @@ $MakeIdle	idle_shotgun	"../9way_central/shotgun" 0 aimlayer_shotgun ACT_HL2MP_ID
 $MakeIdle	idle_slam		"../aimlayers/aimlayer_slam" 4 aimlayer_slam ACT_HL2MP_IDLE_SLAM 1 addlayer idle_layer
 $MakeIdle	idle_smg1		"../combine_soldier_xsi/Hold_SMG1" 0 aimlayer_smg ACT_HL2MP_IDLE_SMG1 1
 
-$MakepIdle prone_ar2 "../9way_central/smg1_prone" 0 aimlayer_smg_prone ACT_TURN 1
-$MakepIdle prone_camera "../9way_central/camera_prone" 0 aimlayer_camera_prone  ACT_TURNLEFT45 1
-$MakepIdle prone_crossbow "../9way_central/crossbow_prone" 0 aimlayer_crossbow_prone ACT_TURNRIGHT45 1
-$MakepIdle prone_knife "../9way_central/knife_prone" 0 aimlayer_knife_prone  ACT_UNDEPLOY 1
-$MakepIdle prone_grenade "../9way_central/melee_prone" 0 aimlayer_melee_prone  ACT_VICTORY_DANCE 1
-$MakepIdle prone_melee "../9way_central/melee_prone" 0 aimlayer_melee_prone  ACT_SHIPLADDER_DOWN 1
-$MakepIdle prone_melee2 "../9way_central/melee_prone" 0 aimlayer_melee_prone  ACT_SHIPLADDER_UP 1
-$MakepIdle prone_passive "../9way_central/passive_prone" 0 aimlayer_passive_prone  ACT_SHIELD_ATTACK 1
-$MakepIdle prone_pistol "../9way_central/pistol_prone" 0 aimlayer_pistol_prone  ACT_RUN_STEALTH_PISTOL 1
-$MakepIdle prone_physgun "../9way_central/gravitygun_prone" 0 aimlayer_physgun_prone  ACT_SHIELD_KNOCKBACK 1
-$MakepIdle prone_revolver "../9way_central/pistol_prone" 0 aimlayer_revolver_prone  ACT_RUN_SCARED 1
-$MakepIdle prone_rpg "../9way_central/rpg_prone" 0 aimlayer_rpg_prone  ACT_RUN_RPG 1
-$MakepIdle prone_shotgun "../9way_central/shotgun_prone" 0 aimlayer_shotgun_prone  ACT_SHIELD_UP_IDLE 1
-$MakepIdle prone_slam "../9way_central/slam_prone" 0 aimlayer_slam_prone  ACT_RUN_STEALTH 1
-$MakepIdle prone_smg1 "../9way_central/smg1_prone" 0 aimlayer_smg_prone ACT_RUN_RIFLE 1
+$MakepIdle prone_ar2 "../9way_central/smg1_prone" 0 aimlayer_smg_prone
+$MakepIdle prone_camera "../9way_central/camera_prone" 0 aimlayer_camera_prone
+$MakepIdle prone_crossbow "../9way_central/crossbow_prone" 0 aimlayer_crossbow_prone
+$MakepIdle prone_knife "../9way_central/knife_prone" 0 aimlayer_knife_prone
+$MakepIdle prone_grenade "../9way_central/melee_prone" 0 aimlayer_melee_prone
+$MakepIdle prone_melee "../9way_central/melee_prone" 0 aimlayer_melee_prone
+$MakepIdle prone_melee2 "../9way_central/melee_prone" 0 aimlayer_melee_prone
+$MakepIdle prone_passive "../9way_central/passive_prone" 0 aimlayer_passive_prone
+$MakepIdle prone_pistol "../9way_central/pistol_prone" 0 aimlayer_pistol_prone
+$MakepIdle prone_physgun "../9way_central/gravitygun_prone" 0 aimlayer_physgun_prone
+$MakepIdle prone_revolver "../9way_central/pistol_prone" 0 aimlayer_revolver_prone
+$MakepIdle prone_rpg "../9way_central/rpg_prone" 0 aimlayer_rpg_prone
+$MakepIdle prone_shotgun "../9way_central/shotgun_prone" 0 aimlayer_shotgun_prone
+$MakepIdle prone_slam "../9way_central/slam_prone" 0 aimlayer_slam_prone
+$MakepIdle prone_smg1 "../9way_central/smg1_prone" 0 aimlayer_smg_prone
 
 $MakeJump	jump_ar2		"../combine_soldier_xsi/Shoot_AR2_crouch" 0 aimlayer_shotgun ACT_HL2MP_JUMP_AR2 1
 $MakeJump	jump_camera	    "../aimlayers/aimlayer_camera" 4 aimlayer_camera ACT_HL2MP_JUMP_CAMERA 1

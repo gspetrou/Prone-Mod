@@ -114,48 +114,48 @@ $animation ProneWalkAim_PSCHRECK_a "../prone/ProneWalkAim_PSCHRECK" {
 }
 
 $sequence prone_walkpassive "pronewalk_a" {
-	ACT_RUN_PROTECTED -1
+	//ACT_RUN_PROTECTED -1
 	loop
 }
 
 $sequence prone_walkonehand "ProneWalkAim_BAZOOKA_a" {
-	ACT_RUN_AIM_PISTOL -1
+	//ACT_RUN_AIM_PISTOL -1
 	loop
 }
 
 $sequence prone_walkphysgun "ProneWalkAim_BOLT_a" {
-	ACT_RUN_AIM_AGITATED -1
+	//ACT_RUN_AIM_AGITATED -1
 	loop
 }
 
 $sequence prone_walkcrossbow "ProneWalkAim_GREN_FRAG_a" {
-	ACT_RUN_AIM_RIFLE -1
+	//ACT_RUN_AIM_RIFLE -1
 	loop
 }
 
 $sequence prone_walkrpg "ProneWalkAim_KNIFE_a" {
-	ACT_RUN_AIM_STIMULATED -1
+	//ACT_RUN_AIM_STIMULATED -1
 	loop
 }
 
 $sequence prone_walktwohand "ProneWalkAim_PSCHRECK_a" {
-	ACT_RUN_AIM_SHOTGUN -1
+	//ACT_RUN_AIM_SHOTGUN -1
 	loop
 }
 
 $sequence pronedown_crouch "../prone/ProneDown_Crouch.smd" {
-	ACT_GET_DOWN_CROUCH -1
+	//ACT_GET_DOWN_CROUCH -1
 }
 
 $sequence pronedown_stand "../prone/ProneDown_Stand.smd" {
-	ACT_GET_DOWN_STAND -1
+	//ACT_GET_DOWN_STAND -1
 }
 
 $sequence proneup_crouch "../prone/ProneUp_Crouch.smd" {
-	ACT_GET_UP_CROUCH -1
+	//ACT_GET_UP_CROUCH -1
 }
 $sequence proneup_stand "../prone/ProneUp_Stand.smd" {
-	ACT_GET_UP_STAND -1
+	//ACT_GET_UP_STAND -1
 }
 
 // ------------------------------------
