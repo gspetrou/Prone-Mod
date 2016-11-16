@@ -111,7 +111,7 @@ function prone.Handle(ply)
 end
 
 net.Receive("Prone.RequestProne", function(_, ply)
-	if ply.prone.lastrequest <= CurTime() then
+	if IsValid(ply) and ply.prone.lastrequest <= CurTime() then
 		prone.Handle(ply)
 		ply.prone.lastrequest = CurTime() + 1.25
 	end
@@ -190,7 +190,7 @@ end
 -- Makes the player get up and exit prone. Later calls prone.Exit.
 function prone.End(ply)
 	ply.prone.endtime = CurTime()
-
+	
 	-- We do this so then next animation doesn't start mid-way through.
 	ply:AnimRestartMainSequence()
 	net.Start("Prone.ResetMainAnimation")
@@ -254,6 +254,13 @@ function prone.Exit(ply)
 	hook.Call("Prone.OnPlayerExitted", nil, ply)
 end
 
+-- Setup new players with a prone table.
+hook.Add("PlayerInitialSpawn", "Prone.MakeTable", function(ply)
+	ply.prone = {
+		lastrequest = 0
+	}
+end)
+
 -- Checks to properly exit prone.
 hook.Add("DoPlayerDeath", "Prone.ExitOnDeath", function(ply)
 	if ply:IsProne() then
@@ -276,7 +283,7 @@ end)
 local ipairs, player_GetAll = ipairs, player.GetAll
 timer.Create("Prone.Manage", 1, 0, function()
 	for i, v in ipairs(player_GetAll()) do
-		if v:IsProne() and ((v:WaterLevel() > 1 and not v:ProneIsGettingUp()) or v:GetMoveType() == MOVETYPE_NOCLIP) then
+		if v:IsProne() and (v:WaterLevel() > 1 and not v:ProneIsGettingUp()) or v:GetMoveType() == MOVETYPE_NOCLIP then
 			prone.Exit(v)
 		end
 	end

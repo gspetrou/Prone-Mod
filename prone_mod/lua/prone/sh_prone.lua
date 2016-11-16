@@ -32,25 +32,6 @@ end
 -- Micro-Optimizatios!
 local IsValid, CurTime, type, math_min = IsValid, CurTime, type, math.min
 
--- Initalise table upon initial spawn
-hook.Add("PlayerInitialSpawn", "Prone.InitialiseTable", function(ply)
-	ply.prone = ply.prone or {}
-
-	if SERVER then
-		if prone.IsCompatibility() then
-			ply.prone.cl_modeldata = {}
-		end
-
-		ply.prone.starttime = 0
-		ply.prone.endtime = 0
-		ply.prone.getuptime = 0
-		ply.prone.getdowntime = 0
-		ply.prone.lastrequest = 0
-		ply.prone.oldviewoffset = Vector(0, 0, 0)
-		ply.prone.oldviewoffset_ducked = Vector(0, 0, 0)
-	end
-end)
-
 ------------------------------------------------------------------
 -- Handles pose parameters and the playback rate of the animations
 ------------------------------------------------------------------

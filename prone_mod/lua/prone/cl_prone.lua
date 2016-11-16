@@ -15,6 +15,7 @@ net.Receive("Prone.Entered", function()
 
 	if IsValid(ply) then
 		ply.prone = ply.prone or {}
+
 		ply:AnimRestartMainSequence()
 
 		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
@@ -33,7 +34,6 @@ net.Receive("Prone.Exit", function()
 	local ply = net.ReadPlayer()
 
 	if IsValid(ply) then
-		ply.prone = ply.prone or {} -- Sometimes the ply.prone table hadn't been initialized for whatever reason, this'll make sure that the IsValid check below doesn't error.
 		ply:AnimRestartMainSequence()
 		ply:ResetHull()	-- For prediction
 
@@ -55,16 +55,15 @@ end)
 
 -- Other player entities are now valid, lets set up the ones which are prone.
 hook.Add("InitPostEntity", "Prone.PlayerInitialized", function()
-	if prone.IsCompatibility() then
-		for i, v in ipairs(player.GetAll()) do
-			v.prone = v.prone or {} -- Create the prone table for all players... Doesn't really seem to work though
-		end
+	for i, v in ipairs(player.GetAll()) do
+		v.prone = v.prone or {}
+	end
 
+	if prone.IsCompatibility() then
 		net.Start("Prone.PlayerInitialized")
 		net.SendToServer()
 	else
 		for i, v in ipairs(player.GetAll()) do
-			v.prone = v.prone or {} -- Create the prone table for all players... Doesn't really seem to work though
 			if v:IsProne() then
 				v:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
 				v:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
@@ -241,7 +240,8 @@ end)
 if prone.IsCompatibility() then
 	-- Creates a fake model and bonemerges it to the player to make it seem alive.
 	function prone.CreateFakeModel(ply, model, clr, bodygrp, plyskin, playercolor)
-		ply.prone = ply.prone or {} -- Sometimes the ply.prone table hadn't been initialized for whatever reason, this'll make sure that the stuff below doesn't error.
+		ply.prone = ply.prone or {}
+
 		ply.prone.cl_model = ClientsideModel(model, clr == color_white and RENDERGROUP_OPAQUE or RENDERGROUP_TRANSLUCENT)
 		ply.prone.cl_model.pronemodel = true
 		ply.prone.cl_model:SetOwner(ply)
@@ -263,7 +263,7 @@ if prone.IsCompatibility() then
 	-- Receiver for when we want to update this fake model.
 	net.Receive("Prone.UpdateModel", function()
 		local ply, model = net.ReadPlayer(), net.ReadString()
-		if IsValid(ply) and ply.prone and IsValid(ply.prone.cl_model) then
+		if IsValid(ply) and IsValid(ply.prone.cl_model) then
 			ply.prone.cl_model:SetModel(model)
 		end
 	end)
