@@ -190,7 +190,7 @@ end
 -- Makes the player get up and exit prone. Later calls prone.Exit.
 function prone.End(ply)
 	ply.prone.endtime = CurTime()
-	
+
 	-- We do this so then next animation doesn't start mid-way through.
 	ply:AnimRestartMainSequence()
 	net.Start("Prone.ResetMainAnimation")
@@ -276,7 +276,7 @@ end)
 local ipairs, player_GetAll = ipairs, player.GetAll
 timer.Create("Prone.Manage", 1, 0, function()
 	for i, v in ipairs(player_GetAll()) do
-		if v:IsProne() and v:WaterLevel() > 1 and not v:ProneIsGettingUp() then
+		if v:IsProne() and ((v:WaterLevel() > 1 and not v:ProneIsGettingUp()) or v:GetMoveType() == MOVETYPE_NOCLIP) then
 			prone.Exit(v)
 		end
 	end

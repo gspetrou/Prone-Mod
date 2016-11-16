@@ -6,7 +6,7 @@ if SERVER then
 	end
 end
 
-function PLUGIN:PlayerCanRagdoll()
+function PLUGIN:PlayerCanRagdoll(ply)
 	if ply:IsProne() then
 		return false
 	end
