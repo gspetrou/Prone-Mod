@@ -1,3 +1,6 @@
+-- Micro-optimize!
+local CurTime, LocalPlayer, IsValid, math_min, Vector = CurTime, LocalPlayer, IsValid, math.min, Vector
+
 -- Support for CombineControl's stupid chat system.
 if GAMEMODE_NAME == "combinecontrol" or GAMEMODE.DerivedFrom == "combinecontrol" then
 	net.Receive("Prone.GetUpWarning", function()
@@ -10,6 +13,7 @@ else
 end
 
 -- When a player enters prone update their hull, reset the animation cycle, and if necessary make a fake model.
+local OriginalViewOffset = vector_origin
 net.Receive("Prone.Entered", function()
 	local ply = net.ReadPlayer()
 
@@ -17,6 +21,12 @@ net.Receive("Prone.Entered", function()
 		ply.prone = ply.prone or {}
 
 		ply:AnimRestartMainSequence()
+
+		if ply == LocalPlayer() then
+			ply.prone.oldviewoffset = ply:GetViewOffset()
+			ply.prone.oldviewoffset_ducked = ply:GetViewOffsetDucked()
+			OriginalViewOffsetZ = ply.prone.oldviewoffset.z
+		end
 
 		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
 		ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
@@ -168,7 +178,66 @@ hook.Add("KeyPress", "Prone.JumpToGetUp", function(ply, key)
 	end
 end)
 
+
+-------------------
+-- View Transitions
+-------------------
+local transitionSpeed = 40
+local transitionVector = vector_origin
+local transitionVectorZ = 0
+local lastTime = 0
+local reset = false
+
+hook.Add("CalcView", "Prone.ViewTransitions", function(ply, pos)
+	if ply:IsProne() then
+		-- Wait till the second time this is called to translate downwards.
+		local time = CurTime()
+		if lastTime == 0 then
+			lastTime = time
+			reset = false
+			return
+		end
+
+		-- Calculate a new Z value slightly lower than before.
+		-- transitionVectorZ is the amount we are going down by.
+		transitionVectorZ = transitionVectorZ + (transitionSpeed * (time - lastTime))
+		lastTime = time
+		transitionVectorZ = math_min(transitionVectorZ, OriginalViewOffsetZ - prone.config.View.z)
+
+		local animstate = ply:GetProneAnimationState()
+		if animstate == PRONE_GETTINGDOWN then
+			transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ)
+		elseif animstate == PRONE_GETTINGUP then
+			transitionVector = Vector(pos.x, pos.y, pos.z + transitionVectorZ)
+		elseif not reset then
+			transitionVector = vector_origin
+			transitionVectorZ = 0
+			lastTime = 0
+			reset = true
+			return
+		end
+		
+		return {origin = transitionVector}
+	elseif not reset then
+		transitionVector = vector_origin
+		transitionVectorZ = 0
+		lastTime = 0
+		reset = true
+	end
+end)
+hook.Add("CalcViewModelView", "Prone.ViewTransitions", function()
+	local animstate = LocalPlayer():GetProneAnimationState()
+	if animstate == PRONE_GETTINGDOWN then
+		return transitionVector
+	elseif animstate == PRONE_GETTINGUP then
+		return transitionVector
+	end
+end)
+
+
+-------------------------------------------------
 -- A derma panel for configuring your prone keys.
+-------------------------------------------------
 concommand.Add("prone_config", function()
 	local frame = vgui.Create("DFrame")
 	frame:SetSize(200, 210)

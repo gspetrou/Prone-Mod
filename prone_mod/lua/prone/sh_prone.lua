@@ -4,17 +4,17 @@
 local PLAYER = FindMetaTable("Player")
 
 function PLAYER:GetProneAnimationState()
-	return self:GetNWInt("prone.AnimationState", PRONE_NOTINPRONE)
+	return self:GetNW2Int("prone.AnimationState", PRONE_NOTINPRONE)
 end
 function PLAYER:SetProneAnimationState(state)
-	return self:SetNWInt("prone.AnimationState", state)
+	return self:SetNW2Int("prone.AnimationState", state)
 end
 
 function PLAYER:GetProneAnimationLength()
-	return self:GetNWFloat("prone.AnimationLength", 0)
+	return self:GetNW2Float("prone.AnimationLength", 0)
 end
 function PLAYER:SetProneAnimationLength(length)
-	return self:SetNWFloat("prone.AnimationLength", length)
+	return self:SetNW2Float("prone.AnimationLength", length)
 end
 
 function PLAYER:IsProne()
@@ -77,35 +77,23 @@ local function GetSequenceForWeapon(holdtype, ismoving)
 end
 local GetMainActivityAnimation = {
 	[PRONE_GETTINGDOWN] = function(ply)
-		if ply:GetProneAnimationLength() >= CurTime() then
-
-			local DownView = LerpVector(FrameTime() * 4, ply:GetViewOffset(), prone.config.View)
-			ply:SetViewOffset(DownView)
-			ply:SetViewOffsetDucked(DownView)
-
-			return prone.animations.gettingdown
-		else
-			ply:SetProneAnimationState(PRONE_INPRONE)
+		if ply:GetProneAnimationLength() <= CurTime() then
 			ply:SetViewOffset(prone.config.View)
 			ply:SetViewOffsetDucked(prone.config.View)
-
-			return prone.animations.gettingdown
+			ply:SetProneAnimationState(PRONE_INPRONE)
 		end
+		
+		return prone.animations.gettingdown
 	end,
 
 	[PRONE_GETTINGUP] = function(ply)
-		if ply:GetProneAnimationLength() >= CurTime() then
-
-			local UpView = LerpVector(FrameTime() * 4, ply:GetViewOffset(), Vector(0, 0, 64))
-			ply:SetViewOffset(UpView)
-			ply:SetViewOffsetDucked(UpView)
-
-			return prone.animations.gettingup
-		else
+		if ply:GetProneAnimationLength() <= CurTime() then
+			ply:SetViewOffset(ply.prone.oldviewoffset)
+			ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked)
 			ply:SetProneAnimationState(PRONE_EXITTINGPRONE)
-
-			return prone.animations.gettingup
 		end
+
+		return prone.animations.gettingup
 	end,
 
 	[PRONE_INPRONE] = function(ply, velocity)
@@ -127,9 +115,7 @@ local GetMainActivityAnimation = {
 			prone.Exit(ply)
 
 			if not prone.CanExit(ply) then
-				prone.StartProne(ply)
-				ply:SetViewOffset(Vector(0, 0, 18))
-				ply:SetViewOffsetDucked(Vector(0, 0, 18))
+				prone.Enter(ply)
 			end
 		end
 
@@ -165,8 +151,14 @@ hook.Add("SetupMove", "Prone.RestrictMovement", function(ply, cmd)
 
 		-- If they are getting up or down then set their speed to TransitionSpeed
 		if ply:GetProneAnimationLength() >= CurTime() then
-			cmd:SetForwardSpeed(prone.config.TransitionSpeed)
-			cmd:SetSideSpeed(prone.config.TransitionSpeed)
+			cmd:SetMaxClientSpeed(prone.config.TransitionSpeed)
+			cmd:SetMaxSpeed(prone.config.TransitionSpeed)
+
+			if prone.config.TransitionSpeed <= 0 and ply:IsOnGround() then
+				cmd:SetForwardSpeed(0)
+				cmd:SetSideSpeed(0)
+				cmd:SetVelocity(Vector(0, 0, 0))
+			end
 			return
 		else	-- If they are in prone set their speed to MoveSpeed
 			cmd:SetMaxClientSpeed(prone.config.MoveSpeed)

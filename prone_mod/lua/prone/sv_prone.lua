@@ -137,8 +137,6 @@ function prone.Enter(ply)
 			model = ply:GetModel(),
 			color = ply:GetColor(),
 			rendermode = ply:GetRenderMode(),
-			viewoffset = ply.prone.oldviewoffset,
-			viewoffset_ducked = ply.prone.oldviewoffset_ducked,
 			proxycolor = ply:GetPlayerColor(),
 			skin = ply:GetSkin(),
 			bodygroups = body_groups
@@ -222,12 +220,10 @@ end
 -- This makes the player actually leave prone.
 function prone.Exit(ply)
 	-- Reset stuff back to how it was before.
-	ply:SetViewOffset(ply.prone.oldviewoffset)
-	ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked)
+	ply:SetViewOffset(ply.prone.oldviewoffset or Vector(0, 0, 64))
+	ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked or Vector(0, 0, 28))
 	ply:ResetHull()
 	if prone.IsCompatibility() then
-		ply:SetViewOffset(ply.prone.cl_modeldata.viewoffset)
-		ply:SetViewOffsetDucked(ply.prone.cl_modeldata.viewoffset_ducked)
 		ply:SetModel(ply.prone.cl_modeldata.model)
 		ply:SetRenderMode(ply.prone.cl_modeldata.rendermode)
 		ply:SetColor(ply.prone.cl_modeldata.color)
