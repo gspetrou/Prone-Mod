@@ -17,11 +17,17 @@ PRONE_NOTINPRONE	= 4
 -- If anybody steals my number there will be hell to pay.
 PRONE_IMPULSE = 127
 
-CreateConVar("prone_compatibility", "0", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Enable this to enhance prone model support. This is experimental and therefore unstable.")
 hook.Add("Initialize", "prone.Initialize", function()
-	local IsSpecialGamemode = GAMEMODE.DerivedFrom == "clockwork" or GAMEMODE.DerivedFrom == "nutscript"
-	function prone.IsCompatibility()
-		return GetConVar("prone_compatibility"):GetBool() or IsSpecialGamemode
+	if GAMEMODE.DerivedFrom == "clockwork" or GAMEMODE.DerivedFrom == "nutscript" then
+		timer.Create("prone.Annoy", 10, 0, function()
+			if SERVER then
+				MsgC(Color(255, 20, 20), "The prone mod no longer supports Clockwork or Nutscript. Use an older version from the github: github.com/gspetrou/Prone-Mod/\n")
+			else
+				chat.AddText(Color(255, 20, 20), "The prone mod no longer supports Clockwork or Nutscript. Use an older version from the github: github.com/gspetrou/Prone-Mod/")
+			end
+		end)
+
+		return
 	end
 
 	-- Make sure we load the files in the right order. Config then sh_prone then the rest.

@@ -1,5 +1,5 @@
 -- Micro-optimizations!
-local math_min, type, IsValid, ipairs, player_GetAll = math.min, type, IsValid, ipairs, player.GetAll
+local math_min, type, IsValid, ipairs, player_GetAll, IsFirstTimePredicted = math.min, type, IsValid, ipairs, player.GetAll, IsFirstTimePredicted
 
 ------------------------------------------------------------
 -- Define a bunch of important meta functions we'll be using
@@ -83,6 +83,17 @@ function prone.CheckWithGamemode(ply)
 	return true
 end
 
+local CantGetUpWarning
+if GAMEMODE_NAME == "combinecontrol" or GAMEMODE.DerivedFrom == "combinecontrol" then
+	CantGetUpWarning = function()
+		GAMEMODE:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
+	end
+else
+	CantGetUpWarning = function()
+		chat.AddText(Color(210, 10, 10), "There is not enough room to get up here.")
+	end
+end
+
 function prone.HasRoomToGetUp(ply)
 	local tr = util.TraceEntity({
 		start = ply:GetPos(),
@@ -91,9 +102,8 @@ function prone.HasRoomToGetUp(ply)
 	}, ply)
 	
 	if tr.Hit then
-		if SERVER then
-			net.Start("prone.GetUpWarning")
-			net.Send(ply)
+		if CLIENT and IsFirstTimePredicted() then
+			CantGetUpWarning()
 		end
 		return false
 	else
@@ -132,8 +142,7 @@ function prone.Enter(ply)
 
 	ply.prone.oldviewoffset = ply:GetViewOffset()
 	ply.prone.oldviewoffset_ducked = ply:GetViewOffsetDucked()
-	ply.prone.oldOBBMaxs = ply:OBBMaxs()
-	ply.prone.oldOBBMins = ply:OBBMins()
+
 
 	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
 	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
@@ -211,6 +220,7 @@ function prone.Handle(ply)
 	end
 end
 
+
 ---------------------------------------------------------------------------
 -- Control some rates and toggle them between prone if they send an impulse
 ---------------------------------------------------------------------------
@@ -263,12 +273,7 @@ hook.Add("SetupMove", "prone.Handle", function(ply, cmd, cuc)
 		end
 	end
 
-	if ply.prone.WantsToToggle then
-		cuc:SetImpulse(PRONE_IMPULSE)
-	end
-
 	if cuc:GetImpulse() == PRONE_IMPULSE and (ply:GetProneAnimationLength() < CurTime() + 0.5) then
-		ply.prone.WantsToToggle = false
 		prone.Handle(ply)
 	end
 end)
@@ -369,12 +374,12 @@ local GetMainActivityAnimation = {
 			endpos = ply:GetPos(),
 			filter = ply
 		}, ply)
+
 		if tr.Hit then
 			prone.Enter(ply)
-			
-			if SERVER then
-				net.Start("prone.GetUpWarning")
-				net.Send(ply)
+
+			if CLIENT and IsFirstTimePredicted() then
+				CantGetUpWarning()
 			end
 		end
 		

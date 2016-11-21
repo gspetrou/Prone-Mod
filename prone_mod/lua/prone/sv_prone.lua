@@ -1,11 +1,3 @@
-util.AddNetworkString("prone.GetUpWarning")
-util.AddNetworkString("prone.Request")
-
-net.Receive("prone.Request", function(_, ply)
-	ply.prone = ply.prone or {}
-	ply.prone.WantsToToggle = true
-end)
-
 hook.Add("DoPlayerDeath", "prone.ExitOnDeath", function(ply)
 	if ply:IsProne() then
 		prone.Exit(ply)

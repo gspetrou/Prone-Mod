@@ -14,20 +14,6 @@ hook.Add("InitPostEntity", "prone.PlayerInitialized", function()
 	end
 end)
 
-local CantGetUpWarning
-if GAMEMODE_NAME == "combinecontrol" or GAMEMODE.DerivedFrom == "combinecontrol" then
-	CantGetUpWarning = function()
-		GAMEMODE:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
-	end
-else
-	CantGetUpWarning = function()
-		chat.AddText(Color(210, 10, 10), "There is not enough room to get up here.")
-	end
-end
-
-net.Receive("prone.GetUpWarning", function()
-	CantGetUpWarning()
-end)
 
 -------------------------
 -- Requesting to go prone
@@ -36,12 +22,10 @@ function prone.SetImpulse(cmd)
 	cmd:SetImpulse(PRONE_IMPULSE)
 end
 
+local SendImpulse = false
 function prone.Request()
-	LocalPlayer().prone.WantsToToggle = true
-	net.Start("prone.Request")
-	net.SendToServer()
+	SendImpulse = true
 end
-
 concommand.Add("prone", function()
 	prone.Request()
 end)
@@ -62,15 +46,18 @@ local key_waspressed = false
 local last_prone_request = 0
 local doubletap_shouldsend = true
 local doubletap_keypress_resettime = false
-
 hook.Add("CreateMove", "prone.ReadBindKeys", function(cmd)
 	local ply = LocalPlayer()
 	if not IsValid(ply) then
 		return
 	end
 
-	if ply.prone.WantsToToggle then
+	if SendImpulse then
 		prone.SetImpulse(cmd)
+
+		if cmd:TickCount() ~= 0 then
+			SendImpulse = false
+		end
 	end
 
 	if (system_IsLinux() or system_HasFocus()) and bindkey_enabled:GetBool() and ply:OnGround() and not vgui_GetKeyboardFocus() and not gui_IsGameUIVisible() and not gui_IsConsoleVisible() then
@@ -98,6 +85,21 @@ hook.Add("CreateMove", "prone.ReadBindKeys", function(cmd)
 		if doubletap_keypress_resettime ~= false and doubletap_keypress_resettime < CurTime() then
 			doubletap_keypress_resettime = false
 			doubletap_shouldsend = true
+		end
+	end
+end)
+
+local jumptogetup_presstime = 0
+hook.Add("KeyPress", "Prone.JumpToGetUp", function(ply, key)
+	if IsFirstTimePredicted() and ply == LocalPlayer() and ply:IsProne() and jumptogetup:GetBool() and key == IN_JUMP then
+		if not jumptogetup_doubletap:GetBool() then
+			prone.Request()
+		else
+			if jumptogetup_presstime > CurTime() then
+				prone.Request()
+			else
+				jumptogetup_presstime = CurTime() + 1.25
+			end
 		end
 	end
 end)
