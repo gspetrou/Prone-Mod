@@ -1,7 +1,7 @@
 if SERVER then
 	function PLUGIN:DoPlayerDeath(ply)
 		if ply:IsProne() then
-			prone.End(ply, true)
+			prone.Exit(ply)
 		end
 	end
 end

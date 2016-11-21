@@ -1,22 +1,41 @@
-////	General Settings
-//
--- Can they move and shoot? You probably don't want this feature on.
-prone.config.CanMoveAndShoot = false
+-----------------------
+-- Key-related settings
+-----------------------
+-- NOTICE:	Every setting in this section can later be changed
+--			by the user with the "prone_config" command.
+
+-- By default is the bind key enabled.
+prone.DefaultBindKey_Enabled = true
+
+-- What is the default bind key set by the server.
+-- See http://wiki.garrysmod.com/page/Enums/KEY
+prone.DefaultBindKey = KEY_L
+
+-- By default should the player double tap the bind key to go prone.
+prone.DefaultBindKey_DoubleTap = true
+
+-- By default can the user press the jump key to get up.
+prone.DefaultJumpToGetUp = true
+
+-- By default must the user double press the jump key to get up.
+prone.DefaultJumpToGetUp_DoubleTap = false
 
 
-////	Move Speeds
-//
+--------------
+-- Move speeds
+--------------
 -- How fast they move while prone.
 prone.config.MoveSpeed = 50
+
 -- How fast they move while getting up or going down.
-prone.config.TransitionSpeed = 0
+prone.config.TransitionSpeed = 30
 
 
-////	Shooting Settings
-//
--- There are no moving and shooting animations while prone so it
--- would look like players aren't shooting when they are.
--- You probably want this to stay set to true.
+----------------------------
+-- Shooting related settings
+----------------------------
+-- There are no moving and shooting animations while prone so it would look like
+-- players aren't shooting when they are. You probably don't want to change this to false.
 prone.config.MoveShoot_Restrict = true
 
 -- Weapons in this list can be shot while moving if the ab
@@ -38,17 +57,21 @@ prone.config.MoveShoot_Whitelist = {
 }
 
 
-/////	DarkRP Settings
-//
+--------------------------
+-- DarkRP related settings
+--------------------------
 -- Should we restrict prone by job.
 prone.config.Darkrp_RestrictJobs = true
+
 -- Is the job list a whitelist? False for blacklist.
 prone.config.Darkrp_IsWhitelist = true
+
 -- If the above setting is true this is the job whitelist. Blacklist otherwise.
 prone.config.Darkrp_Joblist = {
 	TEAM_POLICE,
 	TEAM_GANG
 }
+
 -- Any players of these ranks can go prone, no matter of their job.
 prone.config.Darkrp_BypassRanks = {
 	"superadmin",
@@ -56,8 +79,9 @@ prone.config.Darkrp_BypassRanks = {
 }
 
 
-////	Advanced Settings - Don't fuck with these unless you know what youre doing
-//
+--------------------
+-- Advanced Settings
+--------------------
 -- Sets the hull height while prone. What you can fit under.
 prone.config.HullHeight = 24
 
@@ -68,7 +92,7 @@ prone.animations.gettingdown = "pronedown_stand"
 prone.animations.gettingup = "proneup_stand"
 prone.animations.passive = "prone_walkpassive"
 
--- These two aren't used right now.
+-- These two are not in use right now.
 prone.animations.gettingdown_crouch = "pronedown_crouch"
 prone.animations.gettingup_crouch = "proneup_crouch"
 
