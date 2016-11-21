@@ -83,6 +83,7 @@ function prone.CheckWithGamemode(ply)
 	return true
 end
 
+-- Support for combinecontrol's weird chat system.
 local CantGetUpWarning
 if GAMEMODE_NAME == "combinecontrol" or GAMEMODE.DerivedFrom == "combinecontrol" then
 	CantGetUpWarning = function()
@@ -94,6 +95,7 @@ else
 	end
 end
 
+-- Checks to see if there is enough head room to get up.
 function prone.HasRoomToGetUp(ply)
 	local tr = util.TraceEntity({
 		start = ply:GetPos(),
@@ -170,6 +172,7 @@ function prone.Enter(ply)
 	hook.Call("prone.OnPlayerEntered", nil, ply, length)
 end
 
+-- Plays the get up animation then exits the player out of prone.
 function prone.End(ply)
 	ply:AnimRestartMainSequence()
 
@@ -194,6 +197,7 @@ function prone.End(ply)
 	ply:SetProneAnimationState(PRONE_GETTINGUP)
 end
 
+-- Makes the player immediately exit prone without a getting up animation.
 function prone.Exit(ply)
 	ply:SetViewOffset(ply.prone.oldviewoffset or Vector(0, 0, 64))
 	ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked or Vector(0, 0, 28))
@@ -227,7 +231,7 @@ end
 hook.Add("SetupMove", "prone.Handle", function(ply, cmd, cuc)
 	if ply:IsProne() then
 		if cmd:KeyDown(IN_JUMP) then
-			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))	-- Disables jumping, thanks meep
+			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))	-- Disables jumping, thanks meep.
 		end
 
 		-- If they are getting up or down then set their speed to TransitionSpeed
@@ -286,9 +290,9 @@ hook.Add("TTTPlayerSpeed", "prone.RestrictMovement", function(ply)
 end)
 
 
-------------------------------------------------------------------
--- Handles pose parameters and the playback rate of the animations
-------------------------------------------------------------------
+-------------------------------------------------------------------
+-- Handles pose parameters and the playback rates of the animations
+-------------------------------------------------------------------
 local GetUpdateAnimationRate = {
 	[PRONE_GETTINGDOWN] = 1,
 	[PRONE_GETTINGUP] = 1

@@ -89,6 +89,7 @@ hook.Add("CreateMove", "prone.ReadBindKeys", function(cmd)
 	end
 end)
 
+-- If they enable jump to get up then read that here.
 local jumptogetup_presstime = 0
 hook.Add("KeyPress", "Prone.JumpToGetUp", function(ply, key)
 	if IsFirstTimePredicted() and ply == LocalPlayer() and ply:IsProne() and jumptogetup:GetBool() and key == IN_JUMP then
@@ -222,10 +223,10 @@ concommand.Add("prone_config", function()
 	resetbutton:SetSize(200, 20)
 	function resetbutton:DoClick()
 		RunConsoleCommand("prone_bindkey_enabled", "1")
-		RunConsoleCommand("prone_bindkey_key", tostring(KEY_LCONTROL))
+		RunConsoleCommand("prone_bindkey_key", tostring(prone.DefaultBindKey))
 		RunConsoleCommand("prone_bindkey_doubletap", "1")
 		RunConsoleCommand("prone_jumptogetup", "1")
 		RunConsoleCommand("prone_jumptogetup_double", "1")
-		self:Remove()
+		frame:Remove()
 	end
 end)
