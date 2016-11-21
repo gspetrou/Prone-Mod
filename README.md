@@ -4,5 +4,11 @@ The Prone Mod - http://steamcommunity.com/sharedfiles/filedetails/?id=775573383<
 Created by Stalker - http://steamcommunity.com/profiles/76561197996451757<br>
 Models by Stiffy360 - http://steamcommunity.com/profiles/76561198025319188<br>
 <hr>
-To install this for any gamemode other than Clockwork or Nutscript then place the prone_mod folder into garrysmod/addons/<br>
-For Clockwork and Nutscript go into the "Compatibility Version" folder and use the prone_mod folder located  there instead.
+To install (Any gamemode but Clockwork/Nutscript):<br>
+- Place the prone_mod folder into garrysmod/addons/<br>
+- Make sure your clients download [this](http://steamcommunity.com/sharedfiles/filedetails/?id=775573383) workshop addon<br>
+- Reboot your server!<br><br>
+
+To install (Clockwork/Nutscript):<br>
+- Go into the "Compatibility Version" folder above<br>
+- Read the install instructions in the readme there
