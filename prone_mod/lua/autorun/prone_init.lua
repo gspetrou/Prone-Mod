@@ -82,6 +82,31 @@ PRONE_NOTINPRONE	= 4
 -- If anybody steals my number there will be hell to pay.
 PRONE_IMPULSE = 127
 
+-- Some servers might want to disable this for optimization reasons. With this disabled then the
+-- Prone Mod wont try to do extra stuff to maximize compatibility with other people's addons.
+-- You can change this without directly modifying the addon by hooking PreGamemodeLoaded.
+prone.EnableAddonCompatibility = true
+
+-- This table will contain values for other addons to enable/disable various Prone Mod hooks.
+-- There will also be a table on the players called ply.prone.ShouldModify for player specific stuff.
+prone.ShouldModify = {}
+
+function prone.WritePlayer(ply)
+	if IsValid(ply) then
+		net.WriteUInt(ply:EntIndex(), 7)
+	else
+		net.WriteUInt(0, 7)
+	end
+end
+
+function prone.ReadPlayer()
+	local i = net.ReadUInt(7)
+	if not i then
+		return
+	end
+	return Entity(i)
+end
+
 hook.Add("Initialize", "prone.Initialize", function()
 	-- I gave up on these gamemodes, use an older version of the prone mod if you really want it that bad.
 	if GAMEMODE.DerivedFrom == "clockwork" or GAMEMODE.DerivedFrom == "nutscript" then
@@ -96,13 +121,17 @@ hook.Add("Initialize", "prone.Initialize", function()
 		return
 	end
 
-	-- Make sure we load the files in the right order. Config first, then sh_prone, then the rest.
+	
 	if SERVER then
+		-- Make sure we load the files in the right order. Config first, then sh_prone, then the rest.
 		resource.AddWorkshop("775573383")
 
 		AddCSLuaFile("prone/config.lua")
 		AddCSLuaFile("prone/sh_prone.lua")
 		AddCSLuaFile("prone/cl_prone.lua")
+		if prone.EnableAddonCompatibility then
+			AddCSLuaFile("prone/sh_compatibility.lua")
+		end
 
 		include("prone/config.lua")
 		include("prone/sh_prone.lua")
@@ -111,6 +140,9 @@ hook.Add("Initialize", "prone.Initialize", function()
 		include("prone/config.lua")
 		include("prone/sh_prone.lua")
 		include("prone/cl_prone.lua")
+	end
+	if prone.EnableAddonCompatibility then
+		include("prone/sh_compatibility.lua")	-- Needs to load last.
 	end
 end)
 

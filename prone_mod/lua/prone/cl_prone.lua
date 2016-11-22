@@ -14,6 +14,12 @@ hook.Add("InitPostEntity", "prone.PlayerInitialized", function()
 	end
 end)
 
+net.Receive("prone.EndOnDeath", function()
+	local ply = prone.ReadPlayer()
+	if IsValid(ply) then
+		prone.Exit(ply)
+	end
+end)
 
 -------------------------
 -- Requesting to go prone
@@ -29,6 +35,7 @@ end
 concommand.Add("prone", function()
 	prone.Request()
 end)
+
 
 -------------------
 -- Bind key handler
@@ -48,7 +55,7 @@ local doubletap_shouldsend = true
 local doubletap_keypress_resettime = false
 hook.Add("CreateMove", "prone.ReadBindKeys", function(cmd)
 	local ply = LocalPlayer()
-	if not IsValid(ply) then
+	if not IsValid(ply) or prone.ShouldModify.CreateMove == false then
 		return
 	end
 
@@ -92,7 +99,7 @@ end)
 -- If they enable jump to get up then read that here.
 local jumptogetup_presstime = 0
 hook.Add("KeyPress", "Prone.JumpToGetUp", function(ply, key)
-	if IsFirstTimePredicted() and ply == LocalPlayer() and ply:IsProne() and jumptogetup:GetBool() and key == IN_JUMP then
+	if IsFirstTimePredicted() and prone.ShouldModify.KeyPress ~= false and ply == LocalPlayer() and ply:IsProne() and jumptogetup:GetBool() and key == IN_JUMP then
 		if not jumptogetup_doubletap:GetBool() then
 			prone.Request()
 		else
@@ -109,13 +116,14 @@ end)
 -------------------
 -- View Transitions
 -------------------
+local GetProneAnimationState = FindMetaTable("Player").GetProneAnimationState
 local transitionSpeed = 40
 local transitionVector = vector_origin
 local transitionVectorZ = 0
 local lastTime = 0
 local reset = false
 hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
-	if ply ~= LocalPlayer() then
+	if ply ~= LocalPlayer() or prone.ShouldModify.CalcView == false then
 		return
 	end
 	ply.prone = ply.prone or {
@@ -133,9 +141,9 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 	-- transitionVectorZ is the amount we are going down by.
 	transitionVectorZ = transitionVectorZ + (transitionSpeed * (time - lastTime))
 	lastTime = time
-	transitionVectorZ = math_min(transitionVectorZ, (ply.prone.oldviewoffset.z or 64) - prone.config.View.z)
+	transitionVectorZ = math_min(transitionVectorZ, ply.prone.oldviewoffset.z - prone.config.View.z)
 
-	local animstate = ply:GetProneAnimationState()
+	local animstate = GetProneAnimationState(ply)
 	if animstate == PRONE_GETTINGDOWN then
 		transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ)
 	elseif animstate == PRONE_GETTINGUP then
@@ -151,11 +159,13 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 	return {origin = transitionVector}
 end)
 hook.Add("CalcViewModelView", "prone.ViewTransitions", function()
-	local animstate = LocalPlayer():GetProneAnimationState()
-	if animstate == PRONE_GETTINGDOWN then
-		return transitionVector
-	elseif animstate == PRONE_GETTINGUP then
-		return transitionVector
+	if prone.ShouldModify.CalcViewModelView ~= false then
+		local animstate = GetProneAnimationState(LocalPlayer())
+		if animstate == PRONE_GETTINGDOWN then
+			return transitionVector
+		elseif animstate == PRONE_GETTINGUP then
+			return transitionVector
+		end
 	end
 end)
 
