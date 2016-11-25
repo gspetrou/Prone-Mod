@@ -28,7 +28,7 @@ prone.DefaultJumpToGetUp_DoubleTap = false
 prone.config.MoveSpeed = 50
 
 -- How fast they move while getting up or going down.
-prone.config.TransitionSpeed = 30
+prone.config.TransitionSpeed = 0
 
 
 ----------------------------
