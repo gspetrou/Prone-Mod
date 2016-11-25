@@ -27,7 +27,7 @@ FUNCTIONS:
 		- Returns true if the player is prone.
 	PLAYER:GetProneAnimationState()
 		- Shared
-		- Returns one of the PRONE_ enums.
+		- Returns one of the PRONE_ enums mentionned below.
 	prone.Handle(Player)
 		- Shared
 		- If the player is prone this will make them exit, otherwise it will make them enter prone.
@@ -67,7 +67,7 @@ prone.animations = prone.animations or {}
 prone.config = prone.config or {}
 
 -- YearMonthDay
-prone.Version = 20161125
+prone.Version = 20161126
 
 -- States
 PRONE_GETTINGDOWN	= 0
