@@ -58,9 +58,7 @@ ENUMERATIONS:
 		-- Set when the player is down in prone.
 	PRONE_GETTINGUP		= 2
 		-- Set when the player is getting up.
-	PRONE_EXITTING		= 3
-		-- Set when the player's get up animation is over and they should be completely exitting prone.
-	PRONE_NOTINPRONE	= 4
+	PRONE_NOTINPRONE	= 3
 		-- Set when a player is not prone.
 ]]
 -- Create tables to store almost everything
@@ -69,27 +67,17 @@ prone.animations = prone.animations or {}
 prone.config = prone.config or {}
 
 -- YearMonthDay
-prone.Version = 20161120
+prone.Version = 20161125
 
 -- States
 PRONE_GETTINGDOWN	= 0
 PRONE_INPRONE		= 1
 PRONE_GETTINGUP		= 2
-PRONE_EXITTING		= 3
-PRONE_NOTINPRONE	= 4
+PRONE_NOTINPRONE	= 3
 
 -- The impulse number to be used for toggling prone.
 -- If anybody steals my number there will be hell to pay.
 PRONE_IMPULSE = 127
-
--- Some servers might want to disable this for optimization reasons. With this disabled then the
--- Prone Mod wont try to do extra stuff to maximize compatibility with other people's addons.
--- You can change this without directly modifying the addon by hooking PreGamemodeLoaded.
-prone.EnableAddonCompatibility = true
-
--- This table will contain values for other addons to enable/disable various Prone Mod hooks.
--- There will also be a table on the players called ply.prone.ShouldModify for player specific stuff.
-prone.ShouldModify = {}
 
 function prone.WritePlayer(ply)
 	if IsValid(ply) then
@@ -121,17 +109,14 @@ hook.Add("Initialize", "prone.Initialize", function()
 		return
 	end
 
-	
+	-- Make sure we load the files in the right order. Config first, then sh_prone, then the rest.
 	if SERVER then
-		-- Make sure we load the files in the right order. Config first, then sh_prone, then the rest.
 		resource.AddWorkshop("775573383")
 
 		AddCSLuaFile("prone/config.lua")
 		AddCSLuaFile("prone/sh_prone.lua")
 		AddCSLuaFile("prone/cl_prone.lua")
-		if prone.EnableAddonCompatibility then
-			AddCSLuaFile("prone/sh_compatibility.lua")
-		end
+		AddCSLuaFile("prone/sh_compatibility.lua")
 
 		include("prone/config.lua")
 		include("prone/sh_prone.lua")
@@ -141,9 +126,7 @@ hook.Add("Initialize", "prone.Initialize", function()
 		include("prone/sh_prone.lua")
 		include("prone/cl_prone.lua")
 	end
-	if prone.EnableAddonCompatibility then
-		include("prone/sh_compatibility.lua")	-- Needs to load last.
-	end
+	include("prone/sh_compatibility.lua")
 end)
 
 -- Sandbox C-Menu

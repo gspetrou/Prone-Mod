@@ -1,5 +1,5 @@
 -- Micro-optimizations!
-local math_min, type, IsValid, ipairs, player_GetAll, IsFirstTimePredicted = math.min, type, IsValid, ipairs, player.GetAll, IsFirstTimePredicted
+local math_min, type, IsValid, ipairs, player_GetAll, IsFirstTimePredicted, LocalPlayer = math.min, type, IsValid, ipairs, player.GetAll, IsFirstTimePredicted, LocalPlayer
 
 ------------------------------------------------------------
 -- Define a bunch of important meta functions we'll be using
@@ -7,34 +7,41 @@ local math_min, type, IsValid, ipairs, player_GetAll, IsFirstTimePredicted = mat
 local PLAYER = FindMetaTable("Player")
 
 function PLAYER:GetProneAnimationState()
-	return self.Prone_Animstate or PRONE_NOTINPRONE
+	if SERVER or self == LocalPlayer() then
+		return self.prone_AnimationState or self:GetNW2Int("prone.AnimationState", PRONE_NOTINPRONE)
+	else
+		return self:GetNW2Int("prone.AnimationState", PRONE_NOTINPRONE)
+	end
 end
 function PLAYER:SetProneAnimationState(state)
-	self.Prone_Animstate = state
+	self:SetNW2Int("prone.AnimationState", state)
+	self.prone_AnimationState = state
 end
 
 function PLAYER:GetProneAnimationLength()
-	return self.Prone_AnimLength or 0
+	if SERVER or self == LocalPlayer() then
+		return self.prone_AnimationLength or self:GetNW2Float("prone.AnimationLength", 0)
+	else
+		return self:GetNW2Float("prone.AnimationLength", 0)
+	end
 end
 function PLAYER:SetProneAnimationLength(length)
-	self.Prone_AnimLength = length
+	self:SetNW2Float("prone.AnimationLength", length)
+	self.prone_AnimationLength = length
 end
 
 function PLAYER:IsProne()
-	return self:GetProneAnimationState() <= PRONE_EXITTING
+	return self:GetProneAnimationState() <= PRONE_GETTINGUP
 end
 
 function PLAYER:ProneIsGettingUp()
 	return self:GetProneAnimationState() == PRONE_GETTINGUP
 end
 
-function PLAYER:ProneIsGettingUp()
+function PLAYER:ProneIsGettingDown()
 	return self:GetProneAnimationState() == PRONE_GETTINGDOWN
 end
 
--- Might as well micro-optimize even more
-local IsProne = PLAYER.IsProne
-local GetProneAnimationState = PLAYER.GetProneAnimationState
 
 ------------------------------
 -- Can enter/exit prone checks
@@ -139,17 +146,27 @@ function prone.CanExit(ply)
 	return true
 end
 
+function prone.ResetAnimation(ply)
+	ply:AnimRestartMainSequence()
+
+	if SERVER then
+		net.Start("prone.ResetAnimation")
+			prone.WritePlayer(ply)
+		net.Broadcast()
+	end
+end
+
 
 ---------------------------------
 -- Prone enter and exit functions
 ---------------------------------
 function prone.Enter(ply)
 	ply.prone = ply.prone or {}
-	ply.prone.ShouldModify = ply.prone.ShouldModify or {}
+
+	prone.ResetAnimation(ply)
 
 	ply.prone.oldviewoffset = ply:GetViewOffset()
 	ply.prone.oldviewoffset_ducked = ply:GetViewOffsetDucked()
-
 
 	ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
 	ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
@@ -172,14 +189,15 @@ function prone.Enter(ply)
 		weapon:SetNextSecondaryFire(ply.prone.getdowntime)
 	end
 
-	ply:AnimRestartMainSequence()
 	ply:SetProneAnimationState(PRONE_GETTINGDOWN)
 	hook.Call("prone.OnPlayerEntered", nil, ply, length)
 end
 
 -- Plays the get up animation then exits the player out of prone.
 function prone.End(ply)
-	ply:AnimRestartMainSequence()
+	ply.prone = ply.prone or {}
+
+	prone.ResetAnimation(ply)
 
 	-- Choose either the standing or crouching get up animation.
 	ply.prone.endtime = CurTime()
@@ -204,6 +222,8 @@ end
 
 -- Makes the player immediately exit prone without a getting up animation.
 function prone.Exit(ply)
+	ply.prone = ply.prone or {}
+
 	ply:SetViewOffset(ply.prone.oldviewoffset or Vector(0, 0, 64))
 	ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked or Vector(0, 0, 28))
 	ply:ResetHull()
@@ -218,7 +238,7 @@ function prone.Handle(ply)
 		return
 	end
 
-	if IsProne(ply) then
+	if ply:IsProne() then
 		if prone.CanExit(ply) then
 			prone.End(ply)
 		end
@@ -234,53 +254,49 @@ end
 -- Control some rates and toggle them between prone if they send an impulse
 ---------------------------------------------------------------------------
 hook.Add("SetupMove", "prone.Handle", function(ply, cmd, cuc)
-	if IsProne(ply) then
+	if ply:IsProne() then
 		if cmd:KeyDown(IN_JUMP) then
 			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))	-- Disables jumping, thanks meep.
 		end
 
 		-- If they are getting up or down then set their speed to TransitionSpeed
-		if ply.prone.ShouldModify.MoveSpeeds ~= false then
-			if ply:GetProneAnimationLength() >= CurTime() then
-				cmd:SetMaxClientSpeed(prone.config.TransitionSpeed)
-				cmd:SetMaxSpeed(prone.config.TransitionSpeed)
+		if ply:GetProneAnimationLength() >= CurTime() then
+			cmd:SetMaxClientSpeed(prone.config.TransitionSpeed)
+			cmd:SetMaxSpeed(prone.config.TransitionSpeed)
 
-				-- SetMaxClientSpeed doesn't work if you are setting it to 0 so also do this.
-				if prone.config.TransitionSpeed <= 0 and ply:IsOnGround() then
-					cmd:SetForwardSpeed(0)
-					cmd:SetSideSpeed(0)
-					cmd:SetVelocity(Vector(0, 0, 0))
-				end
-				return
-			else	-- If they are in prone set their speed to MoveSpeed
-				cmd:SetMaxClientSpeed(prone.config.MoveSpeed)
-				cmd:SetMaxSpeed(prone.config.MoveSpeed)
+			-- SetMaxClientSpeed doesn't work if you are setting it to 0 so also do this.
+			if prone.config.TransitionSpeed <= 0 and ply:IsOnGround() then
+				cmd:SetForwardSpeed(0)
+				cmd:SetSideSpeed(0)
+				cmd:SetVelocity(Vector(0, 0, 0))
 			end
+			return
+		else	-- If they are in prone set their speed to MoveSpeed
+			cmd:SetMaxClientSpeed(prone.config.MoveSpeed)
+			cmd:SetMaxSpeed(prone.config.MoveSpeed)
 		end
 
 		-- Make sure they can't shoot while prone and moving if that setting is enabled.
-		if ply.prone.ShouldModify.WeaponShooting ~= false then
-			local attack1 = cmd:KeyDown(IN_ATTACK)
-			if attack1 or cmd:KeyDown(IN_ATTACK2) and prone.config.MoveShoot_Restrict then
-				local weapon = ply:GetActiveWeapon()
-				if not IsValid(weapon) then
-					return
+		local attack1 = cmd:KeyDown(IN_ATTACK)
+		if attack1 or cmd:KeyDown(IN_ATTACK2) and prone.config.MoveShoot_Restrict then
+			local weapon = ply:GetActiveWeapon()
+			if not IsValid(weapon) then
+				return
+			end
+
+			local weaponclass = weapon:GetClass()
+			if not prone.config.MoveShoot_Whitelist[weaponclass] then
+				local ShouldStopMovement = true
+				if attack1 then
+					ShouldStopMovement = weapon:Clip1() > 0
+				else
+					ShouldStopMovement = weapon:Clip2() > 0
 				end
 
-				local weaponclass = weapon:GetClass()
-				if not prone.config.MoveShoot_Whitelist[weaponclass] then
-					local ShouldStopMovement = true
-					if attack1 then
-						ShouldStopMovement = weapon:Clip1() > 0
-					else
-						ShouldStopMovement = weapon:Clip2() > 0
-					end
-
-					if (ShouldStopMovement or weaponclass == "weapon_crowbar") and ply:IsOnGround() then
-						cmd:SetForwardSpeed(0)
-						cmd:SetSideSpeed(0)
-						cmd:SetVelocity(Vector(0, 0, 0))
-					end
+				if (ShouldStopMovement or weaponclass == "weapon_crowbar") and ply:IsOnGround() then
+					cmd:SetForwardSpeed(0)
+					cmd:SetSideSpeed(0)
+					cmd:SetVelocity(Vector(0, 0, 0))
 				end
 			end
 		end
@@ -293,7 +309,7 @@ end)
 
 -- TTT Movement support
 hook.Add("TTTPlayerSpeed", "prone.RestrictMovement", function(ply)
-	if IsProne(ply) then
+	if ply:IsProne() then
 		return prone.config.MoveSpeed / 220	-- 220 is the default run speed in TTT
 	end
 end)
@@ -307,10 +323,10 @@ local GetUpdateAnimationRate = {
 	[PRONE_GETTINGUP] = 1
 }
 hook.Add("UpdateAnimation", "prone.Animations", function(ply, velocity, maxSeqGroundSpeed)
-	if IsProne(ply) then
+	if ply:IsProne() then
 		local length = velocity:Length()
 
-		local rate = GetUpdateAnimationRate[GetProneAnimationState(ply)]
+		local rate = GetUpdateAnimationRate[ply:GetProneAnimationState()]
 		if not rate then
 			if not ply:IsOnGround() and length >= 750 then
 				rate = 0.1
@@ -344,7 +360,7 @@ local function GetSequenceForWeapon(holdtype, ismoving)
 	return ismoving and prone.animations.WeaponAnims.moving[holdtype] or prone.animations.WeaponAnims.idle[holdtype]
 end
 local GetMainActivityAnimation = {
-	[PRONE_GETTINGDOWN] = function(ply, velocity)
+	[PRONE_GETTINGDOWN] = function(ply)
 		if ply:GetProneAnimationLength() <= CurTime() then
 			ply:SetViewOffset(prone.config.View)
 			ply:SetViewOffsetDucked(prone.config.View)
@@ -356,7 +372,25 @@ local GetMainActivityAnimation = {
 
 	[PRONE_GETTINGUP] = function(ply)
 		if ply:GetProneAnimationLength() <= CurTime() then
-			ply:SetProneAnimationState(PRONE_EXITTING)
+			ply:SetViewOffset(ply.prone.oldviewoffset or Vector(0, 0, 64))
+			ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked or Vector(0, 0, 28))
+
+			prone.Exit(ply)
+
+			-- If they get stuck in anything while exitting put them back in prone.
+			local tr = util.TraceEntity({
+				start = ply:GetPos(),
+				endpos = ply:GetPos(),
+				filter = ply
+			}, ply)
+
+			if tr.Hit then
+				prone.Enter(ply)
+
+				if CLIENT and ply == LocalPlayer() then
+					CantGetUpWarning()
+				end
+			end
 		end
 
 		return prone.animations.gettingup
@@ -376,35 +410,14 @@ local GetMainActivityAnimation = {
 		return GetSequenceForWeapon(WeaponHoldType or "normal", velocity:LengthSqr() >= 225)
 	end,
 
-	[PRONE_EXITTING] = function(ply)
-		prone.Exit(ply)
-
-		-- If they get stuck in anything while exitting put them back in prone.
-		local tr = util.TraceEntity({
-			start = ply:GetPos(),
-			endpos = ply:GetPos(),
-			filter = ply
-		}, ply)
-
-		if tr.Hit then
-			prone.Enter(ply)
-
-			if CLIENT then
-				CantGetUpWarning()
-			end
-		end
-
-		return prone.animations.gettingup
-	end,
-
 	-- Just in case this gets called for some reason.
 	[PRONE_NOTINPRONE] = function()
 		return prone.animations.passive
 	end
 }
 hook.Add("CalcMainActivity", "prone.Animations", function(ply, velocity)
-	if IsValid(ply) and IsProne(ply) then
-		local seq = GetMainActivityAnimation[GetProneAnimationState(ply)](ply, velocity)
+	if IsValid(ply) and ply:IsProne() then
+		local seq = GetMainActivityAnimation[ply:GetProneAnimationState()](ply, velocity)
 
 		-- NEVER let this hook's second return parameter be a number less than 0.
 		-- That crashes Linux servers for some reason.
@@ -422,18 +435,18 @@ end)
 -- Check if the player should still be prone at these events
 ------------------------------------------------------------
 hook.Add("PlayerNoClip", "prone.ExitOnNoclip", function(ply)
-	if IsProne(ply) then
+	if ply:IsProne() then
 		prone.Exit(ply)
 	end
 end)
 hook.Add("VehicleMove", "prone.ExitOnVehicleEnter", function(ply)
-	if IsProne(ply) then
+	if ply:IsProne() then
 		prone.Exit(ply)
 	end
 end)
-timer.Create("prone.Manage", 0.5, 0, function()
+timer.Create("prone.Manage", 1, 0, function()
 	for i, v in ipairs(player_GetAll()) do
-		if IsProne(v) and ((v:WaterLevel() > 1 and not v:ProneIsGettingUp()) or v:GetMoveType() == MOVETYPE_NOCLIP) then
+		if v:IsProne() and ((v:WaterLevel() > 1 and not v:ProneIsGettingUp()) or v:GetMoveType() == MOVETYPE_NOCLIP or v:GetMoveType() == MOVETYPE_LADDER) then
 			prone.Exit(v)
 		end
 	end
