@@ -9,12 +9,7 @@ hook.Add("InitPostEntity", "prone.PlayerInitialized", function()
 	end
 end)
 
-hook.Add("EntityNetworkedVarChanged", "prone.ResetMainAnimation", function(ply, name, _, new)
-	if IsValid(ply) and ply:IsPlayer() and name == "prone.AnimationState" and new == PRONE_GETTINGUP then
-		ply:AnimRestartMainSequence()
-	end
-end)
-
+-- This is so that the player's get up/down animation doesn't start at a random point.
 net.Receive("prone.ResetAnimation", function()
 	local ply = prone.ReadPlayer()
 	if IsValid(ply) then
@@ -34,6 +29,7 @@ end)
 -------------------------
 -- Requesting to go prone
 -------------------------
+-- This is the proper, predicted, way to toggle prone.
 function prone.SetImpulse(cmd)
 	cmd:SetImpulse(PRONE_IMPULSE)
 end

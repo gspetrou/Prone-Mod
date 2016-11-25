@@ -1,11 +1,12 @@
 -- Micro-optimizations!
-local math_min, type, IsValid, ipairs, player_GetAll, IsFirstTimePredicted, LocalPlayer = math.min, type, IsValid, ipairs, player.GetAll, IsFirstTimePredicted, LocalPlayer
+local math_min, type, IsValid, ipairs, player_GetAll, IsFirstTimePredicted, LocalPlayer, CurTime = math.min, type, IsValid, ipairs, player.GetAll, IsFirstTimePredicted, LocalPlayer, CurTime
 
 ------------------------------------------------------------
 -- Define a bunch of important meta functions we'll be using
 ------------------------------------------------------------
 local PLAYER = FindMetaTable("Player")
 
+-- Returns a PRONE_ enum of the player's current prone state.
 function PLAYER:GetProneAnimationState()
 	if SERVER or self == LocalPlayer() then
 		return self.prone_AnimationState or self:GetNW2Int("prone.AnimationState", PRONE_NOTINPRONE)
@@ -18,6 +19,7 @@ function PLAYER:SetProneAnimationState(state)
 	self.prone_AnimationState = state
 end
 
+-- Returns the length of the prone animation plus the time the animation was set.
 function PLAYER:GetProneAnimationLength()
 	if SERVER or self == LocalPlayer() then
 		return self.prone_AnimationLength or self:GetNW2Float("prone.AnimationLength", 0)
@@ -42,6 +44,8 @@ function PLAYER:ProneIsGettingDown()
 	return self:GetProneAnimationState() == PRONE_GETTINGDOWN
 end
 
+-- Might as well micro-optimize again.
+local IsProne, GetProneAnimationState, GetProneAnimationLength = PLAYER.IsProne, PLAYER.GetProneAnimationState, PLAYER.GetProneAnimationLength
 
 ------------------------------
 -- Can enter/exit prone checks
@@ -73,7 +77,7 @@ prone.GamemodeChecks = prone.GamemodeChecks or {
 	end,
 
 	prop_hunt = function(ply)
-		if not GetGlobalBool("InRound", false) or (GetGlobalFloat("RoundStartTime", 0) + HUNTER_BLINDLOCK_TIME) > CurTime() or ply:Team() ~= TEAM_HUNTERS then
+		if not GetGlobalBool("InRound", false) or (GetGlobalFloat("RoundStartTime", 0) + (HUNTER_BLINDLOCK_TIME or 0)) > CurTime() or ply:Team() ~= TEAM_HUNTERS then
 			return false
 		else
 			return true
@@ -238,7 +242,7 @@ function prone.Handle(ply)
 		return
 	end
 
-	if ply:IsProne() then
+	if IsProne(ply) then
 		if prone.CanExit(ply) then
 			prone.End(ply)
 		end
@@ -254,13 +258,14 @@ end
 -- Control some rates and toggle them between prone if they send an impulse
 ---------------------------------------------------------------------------
 hook.Add("SetupMove", "prone.Handle", function(ply, cmd, cuc)
-	if ply:IsProne() then
+	if IsProne(ply) then
+		-- Disables jumping, thanks meep.
 		if cmd:KeyDown(IN_JUMP) then
-			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))	-- Disables jumping, thanks meep.
+			cmd:SetButtons(bit.band(cmd:GetButtons(), bit.bnot(IN_JUMP)))
 		end
 
 		-- If they are getting up or down then set their speed to TransitionSpeed
-		if ply:GetProneAnimationLength() >= CurTime() then
+		if GetProneAnimationLength(ply) >= CurTime() then
 			cmd:SetMaxClientSpeed(prone.config.TransitionSpeed)
 			cmd:SetMaxSpeed(prone.config.TransitionSpeed)
 
@@ -302,7 +307,7 @@ hook.Add("SetupMove", "prone.Handle", function(ply, cmd, cuc)
 		end
 	end
 
-	if cuc:GetImpulse() == PRONE_IMPULSE and (ply:GetProneAnimationLength() < CurTime() + 0.5) then
+	if cuc:GetImpulse() == PRONE_IMPULSE and (GetProneAnimationLength(ply) < CurTime() + 0.5) then
 		prone.Handle(ply)
 	end
 end)
@@ -323,10 +328,10 @@ local GetUpdateAnimationRate = {
 	[PRONE_GETTINGUP] = 1
 }
 hook.Add("UpdateAnimation", "prone.Animations", function(ply, velocity, maxSeqGroundSpeed)
-	if ply:IsProne() then
+	if IsProne(ply) then
 		local length = velocity:Length()
 
-		local rate = GetUpdateAnimationRate[ply:GetProneAnimationState()]
+		local rate = GetUpdateAnimationRate[GetProneAnimationState(ply)]
 		if not rate then
 			if not ply:IsOnGround() and length >= 750 then
 				rate = 0.1
@@ -361,7 +366,7 @@ local function GetSequenceForWeapon(holdtype, ismoving)
 end
 local GetMainActivityAnimation = {
 	[PRONE_GETTINGDOWN] = function(ply)
-		if ply:GetProneAnimationLength() <= CurTime() then
+		if GetProneAnimationLength(ply) <= CurTime() then
 			ply:SetViewOffset(prone.config.View)
 			ply:SetViewOffsetDucked(prone.config.View)
 			ply:SetProneAnimationState(PRONE_INPRONE)
@@ -371,7 +376,7 @@ local GetMainActivityAnimation = {
 	end,
 
 	[PRONE_GETTINGUP] = function(ply)
-		if ply:GetProneAnimationLength() <= CurTime() then
+		if GetProneAnimationLength(ply) <= CurTime() then
 			ply:SetViewOffset(ply.prone.oldviewoffset or Vector(0, 0, 64))
 			ply:SetViewOffsetDucked(ply.prone.oldviewoffset_ducked or Vector(0, 0, 28))
 
@@ -416,13 +421,13 @@ local GetMainActivityAnimation = {
 	end
 }
 hook.Add("CalcMainActivity", "prone.Animations", function(ply, velocity)
-	if IsValid(ply) and ply:IsProne() then
-		local seq = GetMainActivityAnimation[ply:GetProneAnimationState()](ply, velocity)
+	if IsValid(ply) and IsProne(ply) then
+		local seq = GetMainActivityAnimation[GetProneAnimationState(ply)](ply, velocity)
 
 		-- NEVER let this hook's second return parameter be a number less than 0.
 		-- That crashes Linux servers for some reason.
 		local seqid = ply:LookupSequence(seq or "")
-		if type(seqid) == "number" and seqid < 0 then
+		if seqid < 0 then
 			return
 		end
 
@@ -435,18 +440,18 @@ end)
 -- Check if the player should still be prone at these events
 ------------------------------------------------------------
 hook.Add("PlayerNoClip", "prone.ExitOnNoclip", function(ply)
-	if ply:IsProne() then
+	if IsProne(ply) then
 		prone.Exit(ply)
 	end
 end)
 hook.Add("VehicleMove", "prone.ExitOnVehicleEnter", function(ply)
-	if ply:IsProne() then
+	if IsProne(ply) then
 		prone.Exit(ply)
 	end
 end)
-timer.Create("prone.Manage", 1, 0, function()
+timer.Create("prone.Manage", 0.5, 0, function()
 	for i, v in ipairs(player_GetAll()) do
-		if v:IsProne() and ((v:WaterLevel() > 1 and not v:ProneIsGettingUp()) or v:GetMoveType() == MOVETYPE_NOCLIP or v:GetMoveType() == MOVETYPE_LADDER) then
+		if IsProne(v) and ((v:WaterLevel() > 1 and not v:ProneIsGettingUp()) or v:GetMoveType() == MOVETYPE_NOCLIP or v:GetMoveType() == MOVETYPE_LADDER) then
 			prone.Exit(v)
 		end
 	end
