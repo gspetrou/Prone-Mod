@@ -1,139 +1,82 @@
--- Micro-optimize!
-local CurTime, LocalPlayer, IsValid, math_min, Vector = CurTime, LocalPlayer, IsValid, math.min, Vector
+local LocalPlayer, CurTime, system_IsLinux, system_HasFocus, vgui_GetKeyboardFocus, gui_IsGameUIVisible, gui_IsConsoleVisible, math_min, Vector = LocalPlayer, CurTime, system.IsLinux, system.HasFocus, vgui.GetKeyboardFocus, gui.IsGameUIVisible, gui.IsConsoleVisible, math.min, Vector
 
--- Support for CombineControl's stupid chat system.
-if GAMEMODE_NAME == "combinecontrol" or GAMEMODE.DerivedFrom == "combinecontrol" then
-	net.Receive("Prone.GetUpWarning", function()
-		GAMEMODE:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
-	end)
-else
-	net.Receive("Prone.GetUpWarning", function()
-		chat.AddText(Color(210, 10, 10), "There is not enough room to get up here.")
-	end)
-end
-
--- When a player enters prone update their hull, reset the animation cycle, and if necessary make a fake model.
-local OriginalViewOffset = vector_origin
-net.Receive("Prone.Entered", function()
-	local ply = net.ReadPlayer()
-
-	if IsValid(ply) then
-		ply.prone = ply.prone or {}
-
-		ply:AnimRestartMainSequence()
-
-		if ply == LocalPlayer() then
-			ply.prone.oldviewoffset = ply:GetViewOffset()
-			ply.prone.oldviewoffset_ducked = ply:GetViewOffsetDucked()
-			OriginalViewOffsetZ = ply.prone.oldviewoffset.z
-		end
-
-		ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-		ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-
-		if prone.IsCompatibility() then
-			local model, clr, bodygroups, playercolor, playerskin = net.ReadString(), net.ReadColor(), net.ReadString(), net.ReadVector(), net.ReadUInt(5)
-			prone.CreateFakeModel(ply, model, clr, bodygroups, playerskin, playercolor)
-		end
-	end
-end)
-
--- If the player is valid simply restart their animation cycle, reset their hull, and if necessary remove their fake model.
--- If they are not valid it means that they disconnected. If that is the case then (if applicable) find and remove their fake model.
-net.Receive("Prone.Exit", function()
-	local ply = net.ReadPlayer()
-
-	if IsValid(ply) then
-		ply:AnimRestartMainSequence()
-		ply:ResetHull()	-- For prediction
-
-		if prone.IsCompatibility() and IsValid(ply.prone.cl_model) then
-			ply.prone.cl_model:Remove()
-			ply.prone.cl_model = nil
-		end
-	elseif prone.IsCompatibility() then
-		for i, v in ipairs(ents.FindByClass("class C_BaseFlex")) do
-			local owner = v:GetOwner()
-
-			if not IsValid(owner) then
-				v:Remove()
-				v = nil
-			end
-		end
-	end
-end)
-
--- Other player entities are now valid, lets set up the ones which are prone.
-hook.Add("InitPostEntity", "Prone.PlayerInitialized", function()
+-- Initialize other prone players when we finish connecting
+hook.Add("InitPostEntity", "prone.PlayerInitialized", function()
 	for i, v in ipairs(player.GetAll()) do
 		v.prone = v.prone or {}
-	end
-
-	if prone.IsCompatibility() then
-		net.Start("Prone.PlayerInitialized")
-		net.SendToServer()
-	else
-		for i, v in ipairs(player.GetAll()) do
-			if v:IsProne() then
-				v:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-				v:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-			end
-		end
-	end
-end)
-net.Receive("Prone.PlayerInitialized", function()
-	local numplayers = net.ReadUInt(7)
-	local is_compatibility = prone.IsCompatibility()
-
-	for i = 1, numplayers do
-		local ply = net.ReadPlayer()
-		if IsValid(ply) then
-			ply:SetHull(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-			ply:SetHullDuck(Vector(-16, -16, 0), Vector(16, 16, prone.config.HullHeight))
-
-			if is_compatibility then
-				local model, clr, bodygroups, playercolor, playerskin = net.ReadString(), net.ReadColor(), net.ReadString(), net.ReadVector(), net.ReadUInt(5)
-				prone.CreateFakeModel(ply, model, clr, bodygroups, playerskin, playercolor)
-			end
-		end
+		v.prone.oldviewoffset = v.prone.oldviewoffset or Vector(0, 0, 64)
+		v.prone.oldviewoffset_ducked = v.prone.oldviewoffset_ducked or Vector(0, 0, 64)
 	end
 end)
 
--- Simply resets the animation cycle for a player.
--- This is important so that when you change animation it doesn't start the next one mid-way.
-net.Receive("Prone.ResetMainAnimation", function()
-	local ply = net.ReadPlayer()
+hook.Add("EntityNetworkedVarChanged", "prone.ResetMainAnimation", function(ply, name, _, new)
+	if IsValid(ply) and ply:IsPlayer() and name == "prone.AnimationState" and new == PRONE_GETTINGUP then
+		ply:AnimRestartMainSequence()
+	end
+end)
+
+net.Receive("prone.ResetAnimation", function()
+	local ply = prone.ReadPlayer()
 	if IsValid(ply) then
 		ply:AnimRestartMainSequence()
 	end
 end)
 
--- Simple functions for requesting to go prone.
+net.Receive("prone.OnDeath", function()
+	local ply = prone.ReadPlayer()
+
+	if IsValid(ply) then
+		prone.Exit(ply)
+	end
+end)
+
+
+-------------------------
+-- Requesting to go prone
+-------------------------
+function prone.SetImpulse(cmd)
+	cmd:SetImpulse(PRONE_IMPULSE)
+end
+
+local SendImpulse = false
 function prone.Request()
-	net.Start("Prone.RequestProne")
-	net.SendToServer()
+	SendImpulse = true
 end
 concommand.Add("prone", function()
 	prone.Request()
 end)
 
---------------------------
--- Configurable prone keys
---------------------------
-local bindkey_enabled = CreateClientConVar("prone_bindkey_enabled", "1", true, false, "Disable this to disable the prone bind key from working.")
-local bindkey_key = CreateClientConVar("prone_bindkey_key", tostring(KEY_LCONTROL), true, false, "Don't directly change this convar. Use the command prone_config.")
-local bindkey_doubletap = CreateClientConVar("prone_bindkey_doubletap", "1", true, false, "Enable to make them double tap the bind key to go prone.")
-local jumptogetup = CreateClientConVar("prone_jumptogetup", "1", true, false, "If enabled you can press the jump key to get up.")
-local jumptogetup_doubletap = CreateClientConVar("prone_jumptogetup_doubletap", "1", true, false, "If enabled you must double press jump to get up.")
+-------------------
+-- Bind key handler
+-------------------
+local function boolToNumString(bool)
+	return bool and "1" or "0"
+end
+local bindkey_enabled = CreateClientConVar("prone_bindkey_enabled", boolToNumString(prone.DefaultBindKey_Enabled), true, false, "Disable this to disable the prone bind key from working.")
+local bindkey_key = CreateClientConVar("prone_bindkey_key", tostring(prone.DefaultBindKey), true, false, "Don't directly change this convar. Use the command prone_config.")
+local bindkey_doubletap = CreateClientConVar("prone_bindkey_doubletap", boolToNumString(prone.DefaultBindKey_DoubleTap), true, false, "Enable to make them double tap the bind key to go prone.")
+local jumptogetup = CreateClientConVar("prone_jumptogetup", "1", boolToNumString(prone.DefaultJumpToGetUp), false, "If enabled you can press the jump key to get up.")
+local jumptogetup_doubletap = CreateClientConVar("prone_jumptogetup_doubletap", boolToNumString(prone.DefaultJumpToGetUp_DoubleTap), true, false, "If enabled you must double press jump to get up.")
 
 local key_waspressed = false
 local last_prone_request = 0
 local doubletap_shouldsend = true
 local doubletap_keypress_resettime = false
-hook.Add("Think", "Prone.BindkeySingleClick", function()
-	-- Oh boy... This really long line pretty much checks if their game has focus, if they want the prone bind key enabled,
-	-- if they are on the ground, and if it is a good time to read their key presses.
-	if (system.IsLinux() or system.HasFocus()) and bindkey_enabled:GetBool() and LocalPlayer():IsFlagSet(FL_ONGROUND) and not vgui.GetKeyboardFocus() and not gui.IsGameUIVisible() and not gui.IsConsoleVisible() then
+hook.Add("CreateMove", "prone.ReadBindKeys", function(cmd)
+	local ply = LocalPlayer()
+	if not IsValid(ply) then
+		return
+	end
+
+	if SendImpulse then
+		prone.SetImpulse(cmd)
+
+		if cmd:TickCount() ~= 0 then
+			SendImpulse = false
+		end
+	end
+
+	if (system_IsLinux() or system_HasFocus()) and bindkey_enabled:GetBool() and ply:OnGround() and not vgui_GetKeyboardFocus() and not gui_IsGameUIVisible() and not gui_IsConsoleVisible() then
 		if input.IsKeyDown(bindkey_key:GetInt()) then
 			key_waspressed = true
 
@@ -162,7 +105,7 @@ hook.Add("Think", "Prone.BindkeySingleClick", function()
 	end
 end)
 
--- See if they pressed the IN_JUMP key to get up.
+-- If they enable jump to get up then read that here.
 local jumptogetup_presstime = 0
 hook.Add("KeyPress", "Prone.JumpToGetUp", function(ply, key)
 	if IsFirstTimePredicted() and ply == LocalPlayer() and ply:IsProne() and jumptogetup:GetBool() and key == IN_JUMP then
@@ -187,45 +130,47 @@ local transitionVector = vector_origin
 local transitionVectorZ = 0
 local lastTime = 0
 local reset = false
+hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
+	if ply ~= LocalPlayer() then
+		return
+	end
+	ply.prone = ply.prone or {
+		oldviewoffset = Vector(0, 0, 64)
+	}
 
-hook.Add("CalcView", "Prone.ViewTransitions", function(ply, pos)
-	if ply:IsProne() then
-		-- Wait till the second time this is called to translate downwards.
-		local time = CurTime()
-		if lastTime == 0 then
-			lastTime = time
-			reset = false
-			return
-		end
-
-		-- Calculate a new Z value slightly lower than before.
-		-- transitionVectorZ is the amount we are going down by.
-		transitionVectorZ = transitionVectorZ + (transitionSpeed * (time - lastTime))
+	local time = CurTime()
+	if lastTime == 0 then
 		lastTime = time
-		transitionVectorZ = math_min(transitionVectorZ, OriginalViewOffsetZ - prone.config.View.z)
+		reset = false
+		return
+	end
 
-		local animstate = ply:GetProneAnimationState()
-		if animstate == PRONE_GETTINGDOWN then
-			transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ)
-		elseif animstate == PRONE_GETTINGUP then
-			transitionVector = Vector(pos.x, pos.y, pos.z + transitionVectorZ)
-		elseif not reset then
-			transitionVector = vector_origin
-			transitionVectorZ = 0
-			lastTime = 0
-			reset = true
-			return
-		end
-		
-		return {origin = transitionVector}
+	-- Calculate a new Z value slightly lower than before.
+	-- transitionVectorZ is the amount we are going down by.
+	transitionVectorZ = transitionVectorZ + (transitionSpeed * (time - lastTime))
+	lastTime = time
+	transitionVectorZ = math_min(transitionVectorZ, (ply.prone.oldviewoffset.z or 64) - prone.config.View.z)
+
+	local animstate = ply:GetProneAnimationState()
+	if animstate == PRONE_GETTINGDOWN then
+		transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ)
+	elseif animstate == PRONE_GETTINGUP then
+		transitionVector = Vector(pos.x, pos.y, pos.z + transitionVectorZ)
 	elseif not reset then
 		transitionVector = vector_origin
 		transitionVectorZ = 0
 		lastTime = 0
 		reset = true
+		return
 	end
+	
+	return {origin = transitionVector}
 end)
-hook.Add("CalcViewModelView", "Prone.ViewTransitions", function()
+hook.Add("CalcViewModelView", "prone.ViewTransitions", function()
+	if prone.DisableCalcViewModelView then
+		return
+	end
+
 	local animstate = LocalPlayer():GetProneAnimationState()
 	if animstate == PRONE_GETTINGDOWN then
 		return transitionVector
@@ -298,42 +243,10 @@ concommand.Add("prone_config", function()
 	resetbutton:SetSize(200, 20)
 	function resetbutton:DoClick()
 		RunConsoleCommand("prone_bindkey_enabled", "1")
-		RunConsoleCommand("prone_bindkey_key", tostring(KEY_LCONTROL))
+		RunConsoleCommand("prone_bindkey_key", tostring(prone.DefaultBindKey))
 		RunConsoleCommand("prone_bindkey_doubletap", "1")
 		RunConsoleCommand("prone_jumptogetup", "1")
 		RunConsoleCommand("prone_jumptogetup_double", "1")
-		self:Remove()
+		frame:Remove()
 	end
 end)
-
-if prone.IsCompatibility() then
-	-- Creates a fake model and bonemerges it to the player to make it seem alive.
-	function prone.CreateFakeModel(ply, model, clr, bodygrp, plyskin, playercolor)
-		ply.prone = ply.prone or {}
-
-		ply.prone.cl_model = ClientsideModel(model, clr == color_white and RENDERGROUP_OPAQUE or RENDERGROUP_TRANSLUCENT)
-		ply.prone.cl_model.pronemodel = true
-		ply.prone.cl_model:SetOwner(ply)
-		ply.prone.cl_model:SetParent(ply)
-		ply.prone.cl_model:AddEffects(EF_BONEMERGE)
-
-		ply.prone.cl_model:Spawn()
-		ply.prone.cl_model:Activate()
-
-		ply.prone.cl_model:SetColor(clr)
-		ply.prone.cl_model:SetBodyGroups(bodygrp)
-
-		ply.prone.cl_model:SetSkin(plyskin)
-		ply.prone.cl_model.GetPlayerColor = function()
-			return playercolor
-		end
-	end
-
-	-- Receiver for when we want to update this fake model.
-	net.Receive("Prone.UpdateModel", function()
-		local ply, model = net.ReadPlayer(), net.ReadString()
-		if IsValid(ply) and IsValid(ply.prone.cl_model) then
-			ply.prone.cl_model:SetModel(model)
-		end
-	end)
-end
