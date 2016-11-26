@@ -163,11 +163,17 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 	return {origin = transitionVector}
 end)
 hook.Add("CalcViewModelView", "prone.ViewTransitions", function()
-	if prone.DisableCalcViewModelView then
-		return
+	local localply = LocalPlayer()
+
+	-- Customizable Weaponry 2 Support
+	if CustomizableWeaponry then
+		local weapon = localply:GetActiveWeapon()
+		if IsValid(weapon) and weapon.CW20Weapon then
+			return
+		end
 	end
 
-	local animstate = LocalPlayer():GetProneAnimationState()
+	local animstate = localply:GetProneAnimationState()
 	if animstate == PRONE_GETTINGDOWN then
 		return transitionVector
 	elseif animstate == PRONE_GETTINGUP then
