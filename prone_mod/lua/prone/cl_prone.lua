@@ -48,11 +48,11 @@ end)
 local function boolToNumString(bool)
 	return bool and "1" or "0"
 end
-local bindkey_enabled = CreateClientConVar("prone_bindkey_enabled", boolToNumString(prone.DefaultBindKey_Enabled), true, false, "Disable this to disable the prone bind key from working.")
-local bindkey_key = CreateClientConVar("prone_bindkey_key", tostring(prone.DefaultBindKey), true, false, "Don't directly change this convar. Use the command prone_config.")
-local bindkey_doubletap = CreateClientConVar("prone_bindkey_doubletap", boolToNumString(prone.DefaultBindKey_DoubleTap), true, false, "Enable to make them double tap the bind key to go prone.")
-local jumptogetup = CreateClientConVar("prone_jumptogetup", "1", boolToNumString(prone.DefaultJumpToGetUp), false, "If enabled you can press the jump key to get up.")
-local jumptogetup_doubletap = CreateClientConVar("prone_jumptogetup_doubletap", boolToNumString(prone.DefaultJumpToGetUp_DoubleTap), true, false, "If enabled you must double press jump to get up.")
+local bindkey_enabled = CreateClientConVar("prone_bindkey_enabled", boolToNumString(prone.config.DefaultBindKey_Enabled), true, false, "Disable this to disable the prone bind key from working.")
+local bindkey_key = CreateClientConVar("prone_bindkey_key", tostring(prone.config.DefaultBindKey), true, false, "Don't directly change this convar. Use the command prone_config.")
+local bindkey_doubletap = CreateClientConVar("prone_bindkey_doubletap", boolToNumString(prone.config.DefaultBindKey_DoubleTap), true, false, "Enable to make them double tap the bind key to go prone.")
+local jumptogetup = CreateClientConVar("prone_jumptogetup", "1", boolToNumString(prone.config.DefaultJumpToGetUp), false, "If enabled you can press the jump key to get up.")
+local jumptogetup_doubletap = CreateClientConVar("prone_jumptogetup_doubletap", boolToNumString(prone.config.DefaultJumpToGetUp_DoubleTap), true, false, "If enabled you must double press jump to get up.")
 
 local key_waspressed = false
 local last_prone_request = 0

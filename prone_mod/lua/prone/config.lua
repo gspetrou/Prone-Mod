@@ -1,3 +1,9 @@
+-------------------
+-- General Settings
+-------------------
+-- What should we multiply fall damage by while prone. Set to 1 to disable.
+prone.config.FallDamageMultiplier = 1.75
+
 -----------------------
 -- Key-related settings
 -----------------------
@@ -5,20 +11,20 @@
 --			by the user with the "prone_config" command.
 
 -- By default is the bind key enabled.
-prone.DefaultBindKey_Enabled = true
+prone.config.DefaultBindKey_Enabled = true
 
 -- What is the default bind key set by the server.
 -- See http://wiki.garrysmod.com/page/Enums/KEY
-prone.DefaultBindKey = KEY_L
+prone.config.DefaultBindKey = KEY_LCONTROL
 
 -- By default should the player double tap the bind key to go prone.
-prone.DefaultBindKey_DoubleTap = true
+prone.config.DefaultBindKey_DoubleTap = true
 
 -- By default can the user press the jump key to get up.
-prone.DefaultJumpToGetUp = true
+prone.config.DefaultJumpToGetUp = true
 
 -- By default must the user double press the jump key to get up.
-prone.DefaultJumpToGetUp_DoubleTap = false
+prone.config.DefaultJumpToGetUp_DoubleTap = false
 
 
 --------------
