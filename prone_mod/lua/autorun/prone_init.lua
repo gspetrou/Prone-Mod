@@ -67,7 +67,7 @@ prone.animations = prone.animations or {}
 prone.config = prone.config or {}
 
 -- YearMonthDay
-prone.Version = 20161126
+prone.Version = 20161126.1
 
 -- States
 PRONE_GETTINGDOWN	= 0

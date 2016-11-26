@@ -1,5 +1,5 @@
 -- Micro-optimizations!
-local math_min, type, IsValid, ipairs, player_GetAll, IsFirstTimePredicted, LocalPlayer, CurTime = math.min, type, IsValid, ipairs, player.GetAll, IsFirstTimePredicted, LocalPlayer, CurTime
+local math_min, type, IsValid, ipairs, player_GetAll, IsFirstTimePredicted, LocalPlayer, CurTime, game_SinglePlayer = math.min, type, IsValid, ipairs, player.GetAll, IsFirstTimePredicted, LocalPlayer, CurTime, game.SinglePlayer
 
 ------------------------------------------------------------
 -- Define a bunch of important meta functions we'll be using
@@ -8,7 +8,7 @@ local PLAYER = FindMetaTable("Player")
 
 -- Returns a PRONE_ enum of the player's current prone state.
 function PLAYER:GetProneAnimationState()
-	if SERVER or self == LocalPlayer() then
+	if not game_SinglePlayer() and (SERVER or (CLIENT and self == LocalPlayer())) then
 		return self.prone_AnimationState or self:GetNW2Int("prone.AnimationState", PRONE_NOTINPRONE)
 	else
 		return self:GetNW2Int("prone.AnimationState", PRONE_NOTINPRONE)
@@ -21,7 +21,7 @@ end
 
 -- Returns the length of the prone animation plus the time the animation was set.
 function PLAYER:GetProneAnimationLength()
-	if SERVER or self == LocalPlayer() then
+	if not game_SinglePlayer() and (SERVER or (CLIENT and self == LocalPlayer())) then
 		return self.prone_AnimationLength or self:GetNW2Float("prone.AnimationLength", 0)
 	else
 		return self:GetNW2Float("prone.AnimationLength", 0)
@@ -422,6 +422,8 @@ local GetMainActivityAnimation = {
 }
 hook.Add("CalcMainActivity", "prone.Animations", function(ply, velocity)
 	if IsValid(ply) and IsProne(ply) then
+		ply.prone = ply.prone or {}
+		
 		local seq = GetMainActivityAnimation[GetProneAnimationState(ply)](ply, velocity)
 
 		-- NEVER let this hook's second return parameter be a number less than 0.
