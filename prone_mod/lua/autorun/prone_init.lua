@@ -79,6 +79,9 @@ PRONE_NOTINPRONE	= 3
 -- If anybody steals my number there will be hell to pay.
 PRONE_IMPULSE = 127
 
+-- If this is true then the prone mod will try to add compatibility for addons which it doesn't work well with.
+prone.AddonCompatibility = true
+
 function prone.WritePlayer(ply)
 	if IsValid(ply) then
 		net.WriteUInt(ply:EntIndex(), 7)
@@ -116,7 +119,9 @@ hook.Add("Initialize", "prone.Initialize", function()
 		AddCSLuaFile("prone/config.lua")
 		AddCSLuaFile("prone/sh_prone.lua")
 		AddCSLuaFile("prone/cl_prone.lua")
-		AddCSLuaFile("prone/sh_compatibility.lua")
+		if prone.AddonCompatibility then
+			AddCSLuaFile("prone/sh_compatibility.lua")
+		end
 
 		include("prone/config.lua")
 		include("prone/sh_prone.lua")
@@ -126,7 +131,10 @@ hook.Add("Initialize", "prone.Initialize", function()
 		include("prone/sh_prone.lua")
 		include("prone/cl_prone.lua")
 	end
-	include("prone/sh_compatibility.lua")
+
+	if prone.AddonCompatibility then
+		include("prone/sh_compatibility.lua")
+	end
 end)
 
 -- Sandbox C-Menu
