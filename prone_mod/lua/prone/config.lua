@@ -67,7 +67,7 @@ prone.config.MoveShoot_Whitelist = {
 -- DarkRP related settings
 --------------------------
 -- Should we restrict prone by job.
-prone.config.Darkrp_RestrictJobs = true
+prone.config.Darkrp_RestrictJobs = false
 
 -- Is the job list a whitelist? False for blacklist.
 prone.config.Darkrp_IsWhitelist = true
