@@ -134,7 +134,7 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 		oldviewoffset = Vector(0, 0, 64)
 	}
 
-	local time = CurTime()
+	local time = RealTime()
 	if lastTime == 0 then
 		lastTime = time
 		reset = false
@@ -149,7 +149,7 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 
 	local animstate = ply:GetProneAnimationState()
 	if animstate == PRONE_GETTINGDOWN then
-		transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ)
+		transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ) - (ply:GetViewOffset() - ply.prone.oldviewoffset)
 	elseif animstate == PRONE_GETTINGUP then
 		transitionVector = Vector(pos.x, pos.y, pos.z + transitionVectorZ)
 	elseif not reset then
