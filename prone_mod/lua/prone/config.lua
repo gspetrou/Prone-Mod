@@ -4,6 +4,7 @@
 -- What should we multiply fall damage by while prone. Set to 1 to disable.
 prone.config.FallDamageMultiplier = 1.75
 
+
 -----------------------
 -- Key-related settings
 -----------------------
