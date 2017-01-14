@@ -54,26 +54,30 @@ local IsProne, GetProneAnimationState, GetProneAnimationLength = PLAYER.IsProne,
 -- We use a table so other gamemodes can easily add their own compatibility stuff.
 prone.GamemodeChecks = prone.GamemodeChecks or {
 	darkrp = function(ply)
-		local rank = ply:GetUserGroup()
-		for i, v in ipairs(prone.config.Darkrp_BypassRanks) do
-			if v == rank then
-				return true
-			end
-		end
-
-		local ply_darkrpjob = ply:Team()
-		for i, v in ipairs(prone.config.Darkrp_Joblist) do
-			if ply_darkrpjob == v then
-				if prone.config.Darkrp_IsWhitelist then
+		if prone.config.Darkrp_RestrictJobs then
+			local rank = ply:GetUserGroup()
+			for i, v in ipairs(prone.config.Darkrp_BypassRanks) do
+				if v == rank then
 					return true
-				else
-					return false
 				end
 			end
+
+			local ply_darkrpjob = ply:Team()
+			for i, v in ipairs(prone.config.Darkrp_Joblist) do
+				if ply_darkrpjob == v then
+					if prone.config.Darkrp_IsWhitelist then
+						return true
+					else
+						return false
+					end
+				end
+			end
+
+			-- If their job was not on the list and that list was not a whitelist then they can go prone.
+			return not prone.config.Darkrp_IsWhitelist
 		end
 
-		-- If their job was not on the list and that list was not a whitelist then they can go prone.
-		return not prone.config.Darkrp_IsWhitelist
+		return true
 	end,
 
 	prop_hunt = function(ply)
