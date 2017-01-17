@@ -12,7 +12,7 @@ if SERVER then
 		local ENTITY = FindMetaTable("Entity")
 		local OldSetModelScale = ENTITY.SetModelScale
 		function ENTITY:SetModelScale(scale, delta)
-			if v:IsPlayer() and v.IsProne and self:IsProne() then
+			if self:IsPlayer() and self.IsProne and self:IsProne() then
 				self:PrintMessage(HUD_PRINTTALK, "You can't change your scale while prone!")
 			else
 				OldSetModelScale(self, scale, delta)
