@@ -98,7 +98,7 @@ function prone.ReadPlayer()
 	return Entity(i)
 end
 
-
+--------------------------------------------------
 local ranksAnnoy = {
 	owner = true, coowner = true, admin = true, superadmin = true,
 	["super-admin"] = true, operator = true, administrator = true,
@@ -120,6 +120,7 @@ else
 		end)
 	end)
 end
+--------------------------------------------------
 
 hook.Add("Initialize", "prone.Initialize", function()
 	-- I gave up on these gamemodes, use an older version of the prone mod if you really want it that bad.
