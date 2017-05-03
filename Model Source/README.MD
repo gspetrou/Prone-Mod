@@ -1,5 +1,4 @@
-These models are a modified version of the ones found in the repository bellow.
-Stiffy360 ported the DOD prone animations into the base Garry's Mod animation files
-and tweaked them to look and work nicely.
+There are multiple qc files in the following folder. The files (m_anm.mdl, f_anm.mdl, and z_anm.mdl) are stand-alone and do not require [wOS Animation Mod](http://steamcommunity.com/sharedfiles/filedetails/?id=918084741). The file (player/wiltos/anim_extension_prone.mdl) does require wOS.
 
-https://github.com/robotboy655/gmod-animations
+
+Source for Garry's Mod animation files: https://github.com/robotboy655/gmod-animations

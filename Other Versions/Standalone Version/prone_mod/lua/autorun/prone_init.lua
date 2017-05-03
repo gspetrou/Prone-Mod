@@ -67,7 +67,7 @@ prone.animations = prone.animations or {}
 prone.config = prone.config or {}
 
 -- YearMonthDay
-prone.Version = 20170503
+prone.Version = 20161126.2
 
 -- States
 PRONE_GETTINGDOWN	= 0
@@ -96,29 +96,6 @@ function prone.ReadPlayer()
 		return
 	end
 	return Entity(i)
-end
-
-
-local ranksAnnoy = {
-	owner = true, coowner = true, admin = true, superadmin = true,
-	["super-admin"] = true, operator = true, administrator = true,
-	moderator = true
-}
-util.AddNetworkString("prone.UpdateModelsWarning")
-if SERVER then
-	hook.Add("PlayerInitialSpawn", "prone.Annoy", function(ply)
-		if ply:IsSuperAdmin() or ply:IsAdmin() or ply:IsListenServerHost() or ranksAnnoy[ply:GetUserGroup()] then
-			net.Start("prone.UpdateModelsWarning")
-			net.Send(ply)
-		end
-	end)
-else
-	net.Receive("prone.UpdateModelsWarning", function()
-		timer.Simple(8, function()
-			chat.AddText(Color(200, 10, 10), "SERVER OWNERS: On May 8th the Prone Mod will update to require the addon wOS Animations.")
-			chat.AddText(Color(200, 10, 10), "This update will break the Prone Mod if you are not ready!")
-		end)
-	end)
 end
 
 hook.Add("Initialize", "prone.Initialize", function()
