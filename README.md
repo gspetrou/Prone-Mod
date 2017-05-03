@@ -5,7 +5,7 @@ Created by Stalker - http://steamcommunity.com/profiles/76561197996451757<br>
 Models by Stiffy360 - http://steamcommunity.com/profiles/76561198025319188<br>
 <hr>
 
-To install (Any gamemode but Clockwork/Nutscript):<br>
+To install (Any gamemode but Clockwork/Nutscript):
 
  - Make sure both the server and the clients install [this](http://steamcommunity.com/workshop/filedetails/?id=918163968) workshop collection.
 
