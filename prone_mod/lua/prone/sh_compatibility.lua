@@ -1,4 +1,23 @@
--- This file contains extra compatibility for certain addons.
+-------------------------
+-- Gamemode compatibility
+-------------------------
+-- TTT Movement support
+hook.Add("TTTPlayerSpeed", "prone.RestrictMovement", function(ply)
+	if ply:IsProne() then
+		return prone.config.MoveSpeed / 220	-- 220 is the default run speed in TTT
+	end
+end)
+
+-- CombineControl's weird chatbox support.
+if CLIENT and (GAMEMODE_NAME == "combinecontrol" or GAMEMODE.DerivedFrom == "combinecontrol") then
+	function prone.CantGetUpWarning()
+		GAMEMODE:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
+	end
+end
+
+----------------------
+-- Addon compatibility
+----------------------
 local hooktable = hook.GetTable()
 
 if SERVER then

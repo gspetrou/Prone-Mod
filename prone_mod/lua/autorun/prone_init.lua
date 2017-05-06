@@ -79,7 +79,7 @@ PRONE_NOTINPRONE	= 3
 -- If anybody steals my number there will be hell to pay.
 PRONE_IMPULSE = 127
 
--- If this is true then the prone mod will try to add compatibility for addons which it doesn't work well with.
+-- If this is true then the prone mod will try to add compatibility for addons and gamemodes which it doesn't work well with.
 prone.AddonCompatibility = true
 
 function prone.WritePlayer(ply)
