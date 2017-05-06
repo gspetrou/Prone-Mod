@@ -116,25 +116,40 @@ function prone.ReadPlayer()
 end
 
 --------------------------------------------------
-local ranksAnnoy = {
-	owner = true, coowner = true, admin = true, superadmin = true,
-	["super-admin"] = true, operator = true, administrator = true,
-	moderator = true
-}
-util.AddNetworkString("prone.UpdateModelsWarning")
 if SERVER then
+	util.AddNetworkString("prone.UpdateModelsWarning")
+	local ranksAnnoy = {
+		owner = true,
+		coowner = true,
+		admin = true,
+		superadmin = true,
+		["super-admin"] = true,
+		operator = true,
+		administrator = true,
+		moderator = true
+	}
+
 	hook.Add("PlayerInitialSpawn", "prone.Annoy", function(ply)
 		if ply:IsSuperAdmin() or ply:IsAdmin() or ply:IsListenServerHost() or ranksAnnoy[ply:GetUserGroup()] then
 			net.Start("prone.UpdateModelsWarning")
+				net.WriteBool(os.time() >= 1494172800)
 			net.Send(ply)
 		end
 	end)
 else
 	net.Receive("prone.UpdateModelsWarning", function()
-		timer.Simple(8, function()
-			chat.AddText(Color(200, 10, 10), "SERVER OWNERS: On May 8th the Prone Mod will update to require the addon wOS Animations.")
-			chat.AddText(Color(200, 10, 10), "This update will break the Prone Mod if you are not ready!")
-		end)
+		local updateIsOut = net.ReadBool()
+		if not istable(wOS) or not wOS.AnimExtension.Mounted["Prone Mod"] then
+			timer.Simple(8, function()
+				if updateIsOut then
+					chat.AddText(Color(230, 10, 10), "SERVER OWNERS: The Prone Mod REQUIRES that you have wOS Animations installed for it to work otherwise there WILL be issues.")
+					chat.AddText(Color(230, 10, 10), "Please check the Prone Mod workshop page for more information on what addons you require.")
+				else
+					chat.AddText(Color(230, 10, 10), "SERVER OWNERS: On May 7th the Prone Mod will update to require the addon wOS Animations.")
+					chat.AddText(Color(230, 10, 10), "This update will break the Prone Mod if you are not ready! Please check the Prone Mod workshop page.")
+				end
+			end)
+		end
 	end)
 end
 --------------------------------------------------
@@ -176,6 +191,8 @@ hook.Add("Initialize", "prone.Initialize", function()
 	if prone.AddonCompatibility then
 		include("prone/sh_compatibility.lua")
 	end
+
+	hook.Call("prone.Initialized")
 end)
 
 -- Sandbox C-Menu
