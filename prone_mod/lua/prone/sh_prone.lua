@@ -378,6 +378,7 @@ local GetMainActivityAnimation = {
 				prone.Enter(ply)
 
 				if CLIENT and ply == LocalPlayer() then
+					prone.CantGetUpWarning()
 				end
 			end
 		end
@@ -441,3 +442,20 @@ timer.Create("prone.Manage", 0.5, 0, function()
 			prone.Exit(v)
 		end
 	end
+end)
+
+----------------
+-- API Functions
+----------------
+-- Notice: Any API functions should be called in or after the prone.Initialized hook has been called.
+function prone.AddNewHoldTypeAnimation(holdtype, movingSequenceName, idleSequenceName)
+	prone.animations.WeaponAnims.moving[holdtype] = movingSequenceName
+	prone.animations.WeaponAnims.idle[holdtype] = idleSequenceName
+end
+
+function prone.GetIdleAnimation(holdtype)
+	return prone.animations.WeaponAnims.idle[holdtype]
+end
+function prone.GetMovingAnimation(holdtype)
+	return prone.animations.WeaponAnims.moving[holdtype]
+end
