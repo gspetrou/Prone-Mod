@@ -25,7 +25,7 @@ function PLAYER:ProneIsGettingUp()
 	return self:GetProneAnimationState() == PRONE_GETTINGUP
 end
 
-function PLAYER:ProneIsGettingUp()
+function PLAYER:ProneIsGettingDown()
 	return self:GetProneAnimationState() == PRONE_GETTINGDOWN
 end
 
