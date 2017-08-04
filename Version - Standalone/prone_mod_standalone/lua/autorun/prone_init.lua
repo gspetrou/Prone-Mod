@@ -132,7 +132,7 @@ hook.Add("Initialize", "prone.Initialize", function()
 
 	-- Make sure we load the files in the right order. Config first, then sh_prone, then the rest.
 	if SERVER then
-		resource.AddWorkshop("775573383")
+		resource.AddWorkshop("1100368137")
 
 		AddCSLuaFile("prone/config.lua")
 		AddCSLuaFile("prone/sh_prone.lua")

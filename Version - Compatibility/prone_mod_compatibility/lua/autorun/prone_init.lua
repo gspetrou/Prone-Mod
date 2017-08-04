@@ -109,7 +109,7 @@ hook.Add("Initialize", "Prone.Initialize", function()
 	end
 
 	if SERVER then
-		resource.AddWorkshop("775573383")
+		resource.AddWorkshop("609281761")
 
 		AddCSLuaFile("prone/config.lua")
 		AddCSLuaFile("prone/sh_prone.lua")
