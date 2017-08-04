@@ -102,18 +102,6 @@ function prone.CheckWithGamemode(ply)
 	return true
 end
 
--- Support for combinecontrol's weird chat system.
-local CantGetUpWarning
-if GAMEMODE_NAME == "combinecontrol" or GAMEMODE.DerivedFrom == "combinecontrol" then
-	CantGetUpWarning = function()
-		GAMEMODE:AddChat(Color(210, 10, 10, 255), "CombineControl.ChatNormal", "There isn't enough room to stand up!", {CB_ALL, CB_IC})
-	end
-else
-	CantGetUpWarning = function()
-		chat.AddText(Color(210, 10, 10), "There is not enough room to get up here.")
-	end
-end
-
 -- Checks to see if there is enough head room to get up.
 function prone.HasRoomToGetUp(ply)
 	local tr = util.TraceEntity({
@@ -124,7 +112,7 @@ function prone.HasRoomToGetUp(ply)
 	
 	if tr.Hit then
 		if CLIENT and IsFirstTimePredicted() then
-			CantGetUpWarning()
+			prone.CantGetUpWarning()
 		end
 		return false
 	else
@@ -316,13 +304,6 @@ hook.Add("SetupMove", "prone.Handle", function(ply, cmd, cuc)
 	end
 end)
 
--- TTT Movement support
-hook.Add("TTTPlayerSpeed", "prone.RestrictMovement", function(ply)
-	if ply:IsProne() then
-		return prone.config.MoveSpeed / 220	-- 220 is the default run speed in TTT
-	end
-end)
-
 
 -------------------------------------------------------------------
 -- Handles pose parameters and the playback rates of the animations
@@ -397,7 +378,7 @@ local GetMainActivityAnimation = {
 				prone.Enter(ply)
 
 				if CLIENT and ply == LocalPlayer() then
-					CantGetUpWarning()
+					prone.CantGetUpWarning()
 				end
 			end
 		end

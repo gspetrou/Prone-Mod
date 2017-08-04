@@ -5,18 +5,14 @@ Created by Stalker - http://steamcommunity.com/profiles/76561197996451757<br>
 Models by Stiffy360 - http://steamcommunity.com/profiles/76561198025319188<br>
 <hr>
 
-To install (Any gamemode but Clockwork/Nutscript):
+To Install (Standalone Version):
 
- - Make sure both the server and the clients install [this](http://steamcommunity.com/workshop/filedetails/?id=918163968) workshop collection.
+- Open the folder "Versions - Standalone" and read the README in there.
+
+To install (wOS Version):
+
+ - Open the folder "Versions - wOS" and read the README in there.
 
 To install (Clockwork/Nutscript):
 
-- Go into the "Other Versions" folder above.
-- Open the "Compatibility Version" folder in there.<br>
-- Read the install instructions in the readme there.
-
-To Install the standalone version:
-
-- Go into the "Other Versions" folder above.
-- Open the "Standalone Version" folder in there.<br>
-- Read the install instructions in the readme there.
+- Open the folder "Versions - Compatibility" and read the readme in there.

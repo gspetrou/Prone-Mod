@@ -1,7 +1,10 @@
--- Copyright 2016, George "Stalker" Petrou. Enjoy!
+-- Copyright 2017, George "Stalker" Petrou. Enjoy!
 
 --[[	DOCUMENTATION	
 HOOKS:
+	prone.Initialized
+		- Called after the Prone Mod has finished loading.
+
 	Note: These hooks are predicted.
 	
 	prone.OnPlayerEntered
@@ -19,6 +22,7 @@ HOOKS:
 		- Called to see if a player can exit prone.
 		- Arg One:	The player that wants to exit prone.
 		- Return:	A boolean determining if they can exit prone or not.
+		
 FUNCTIONS:
 	Note: None of these functions exist till after the initialize hook is called.
 	
@@ -51,6 +55,20 @@ FUNCTIONS:
 	RunConsoleCommand("prone_config")
 		- Client
 		- Will open up the in-game prone configuration menu.
+
+	Note: These functions below MUST be called in or after the prone.Initialzed hook has been called.
+
+	prone.AddNewHoldTypeAnimation(holdtype, movingSequenceName, idleSequenceName)
+		- Shared
+		- Registers a new hold type animation. Requires a sequence name for the moving animation and idle animation for that holdtype.
+		- Can be used to override pre-existing holdtypes. Must be called shared.
+	prone.GetIdleAnimation(holdtype)
+		- Shared
+		- Returns the name of the sequence corresponding the idle stance of the given holdtype.
+	prone.GetMovingAnimation(holdtype)
+		- Shared
+		- Returns the name of the sequence corresponding the moving stance of the given holdtype.
+
 ENUMERATIONS:
 	PRONE_GETTINGDOWN	= 0
 		-- Set when the player is getting down into prone.
@@ -67,7 +85,7 @@ prone.animations = prone.animations or {}
 prone.config = prone.config or {}
 
 -- YearMonthDay
-prone.Version = 20161126.2
+prone.Version = 20170505
 
 -- States
 PRONE_GETTINGDOWN	= 0
@@ -79,7 +97,7 @@ PRONE_NOTINPRONE	= 3
 -- If anybody steals my number there will be hell to pay.
 PRONE_IMPULSE = 127
 
--- If this is true then the prone mod will try to add compatibility for addons which it doesn't work well with.
+-- If this is true then the prone mod will try to add compatibility for addons and gamemodes which it doesn't work well with.
 prone.AddonCompatibility = true
 
 function prone.WritePlayer(ply)
@@ -135,6 +153,8 @@ hook.Add("Initialize", "prone.Initialize", function()
 	if prone.AddonCompatibility then
 		include("prone/sh_compatibility.lua")
 	end
+
+	hook.Call("prone.Initialized")
 end)
 
 -- Sandbox C-Menu

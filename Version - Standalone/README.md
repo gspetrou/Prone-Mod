@@ -1,4 +1,4 @@
-This version of the Prone Mod does not require wOS but is no longer updated.
+This version of the Prone Mod does not require any other addon (such as wOS) to work.
 
 To Install:<br>
 - Place the prone_mod_standalone folder into garrysmod/addons/<br>

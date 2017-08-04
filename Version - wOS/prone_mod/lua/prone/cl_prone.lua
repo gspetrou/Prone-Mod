@@ -25,6 +25,10 @@ net.Receive("prone.OnDeath", function()
 	end
 end)
 
+-- Called to inform the player that they can't get up.
+function prone.CantGetUpWarning()
+	chat.AddText(Color(210, 10, 10), "There is not enough room to get up here.")
+end
 
 -------------------------
 -- Requesting to go prone
