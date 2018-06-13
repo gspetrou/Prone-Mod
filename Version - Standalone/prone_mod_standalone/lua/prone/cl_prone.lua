@@ -238,7 +238,7 @@ concommand.Add("prone_config", function()
 	binder:SetPos(25, 130)
 	binder:CenterHorizontal()
 	binder:SetValue(bindkey_key:GetInt())
-	function binder:SetSelected(num)
+	function binder:OnChange(num)
 		RunConsoleCommand("prone_bindkey_key", num)
 		self:SetText(input.GetKeyName(num))
 	end

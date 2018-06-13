@@ -93,7 +93,7 @@ prone.config.Darkrp_BypassRanks = {
 prone.config.HullHeight = 24
 
 -- Sets how low the player's view will be while prone.
-prone.config.View = Vector(0, 0, 24)
+prone.config.View = Vector(0, 0, 20)
 
 prone.animations.gettingdown = "pronedown_stand"
 prone.animations.gettingup = "proneup_stand"
