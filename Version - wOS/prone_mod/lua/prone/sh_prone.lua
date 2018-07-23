@@ -245,6 +245,7 @@ function prone.Handle(ply)
 	end
 end
 
+local proneMoveSpeed = CreateConVar("prone_movespeed", tostring(prone.config.MoveSpeed), {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Sets the move speed while prone.")
 
 ---------------------------------------------------------------------------
 -- Control some rates and toggle them between prone if they send an impulse
@@ -269,8 +270,13 @@ hook.Add("SetupMove", "prone.Handle", function(ply, cmd, cuc)
 			end
 			return
 		else	-- If they are in prone set their speed to MoveSpeed
-			cmd:SetMaxClientSpeed(prone.config.MoveSpeed)
-			cmd:SetMaxSpeed(prone.config.MoveSpeed)
+			local moveSpeed = proneMoveSpeed:GetInt()
+			if not isnumber(moveSpeed) then
+				moveSpeed = prone.config.MoveSpeed
+			end
+
+			cmd:SetMaxClientSpeed(moveSpeed)
+			cmd:SetMaxSpeed(moveSpeed)
 		end
 
 		-- Make sure they can't shoot while prone and moving if that setting is enabled.
