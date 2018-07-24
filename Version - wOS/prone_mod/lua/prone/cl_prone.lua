@@ -81,7 +81,7 @@ hook.Add("CreateMove", "prone.ReadBindKeys", function(cmd)
 			key_waspressed = true
 
 			-- If doubletap is enabled they have a second to double click the bind key.
-			doubletap_keypress_resettime = CurTime() + 1
+			doubletap_keypress_resettime = CurTime() + 0.66
 		else
 			if key_waspressed then
 				if last_prone_request < CurTime() then
@@ -249,10 +249,10 @@ concommand.Add("prone_config", function()
 	resetbutton:SetSize(200, 20)
 	function resetbutton:DoClick()
 		RunConsoleCommand("prone_bindkey_enabled", "1")
-		RunConsoleCommand("prone_bindkey_key", tostring(prone.DefaultBindKey))
+		RunConsoleCommand("prone_bindkey_key", tostring(prone.config.DefaultBindKey))
 		RunConsoleCommand("prone_bindkey_doubletap", "1")
 		RunConsoleCommand("prone_jumptogetup", "1")
-		RunConsoleCommand("prone_jumptogetup_double", "1")
+		RunConsoleCommand("prone_jumptogetup_doubletap", "1")
 		frame:Remove()
 	end
 end)
