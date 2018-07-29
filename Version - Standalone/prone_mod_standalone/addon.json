@@ -1,0 +1,11 @@
+{
+	"title"		:	"Prone Mod - Standalone Version",
+	"type"		:	"model",
+	"tags"		:	[ "fun", "realism" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*"
+	]
+}

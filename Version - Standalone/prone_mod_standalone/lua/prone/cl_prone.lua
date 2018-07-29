@@ -125,13 +125,15 @@ end)
 -------------------
 -- View Transitions
 -------------------
+local enabledViewTransitions = CreateClientConVar("prone_disabletransitions", "0", true, false, "Should only be used by other addons in order to enable/disable the prone mod handling view transitions.")
+
 local transitionSpeed = 40
 local transitionVector = vector_origin
 local transitionVectorZ = 0
 local lastTime = 0
 local reset = false
 hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
-	if ply ~= LocalPlayer() then
+	if ply ~= LocalPlayer() or enabledViewTransitions:GetBool() then
 		return
 	end
 	ply.prone = ply.prone or {
@@ -168,6 +170,10 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 end)
 hook.Add("CalcViewModelView", "prone.ViewTransitions", function()
 	local localply = LocalPlayer()
+
+	if enabledViewTransitions:GetBool() then
+		return
+	end
 
 	-- Customizable Weaponry 2 Support
 	if CustomizableWeaponry then
