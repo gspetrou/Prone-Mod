@@ -22,7 +22,7 @@ How do you add custom animations to Garry's Mod models?
  - You have to compile m_anm.mdl, f_anm.mdl, z_anm.mdl, found in the Garry's Mod model source [here](https://github.com/robotboy655/gmod-animations), with the animations you want.
 
 How do you add custom animations to the HL2 models?
- - That was done be decompiling "humans/male_postures.mdl" and "humans/female_postures.mdl" from the Garry's Mod vpk, then recompiling them with the animations you want to add. You can see those in the "Model Source/hl2model_stuff" folder in this repository.
+ - That was done by decompiling "humans/male_postures.mdl" and "humans/female_postures.mdl" from the Garry's Mod vpk, then recompiling them with the animations you want to add. You can see those in the "Model Source/gmod_animations/hl2model_stuff" folder in this repository.
 
 Why can I only have one animation mod installed at a time?
 - Only one addon will be able to override m_anm.mdl, f_anm.mdl, z_anm.mdl, male_postures.mdl, and female_postures.mdl
@@ -35,6 +35,7 @@ Are gamemodes like Clockwork, Nutscript, and Helix supported?
 
 ---
 Copyright 2016-2020 George "Stalker" Petrou
+
 You are free to do anything with the contents of this repository except the following:
  - Sell them, modified or not.
  - Claim them as your own.
