@@ -1,43 +1,40 @@
-local LocalPlayer, CurTime, system_IsLinux, system_HasFocus, vgui_GetKeyboardFocus, gui_IsGameUIVisible, gui_IsConsoleVisible, math_min, Vector = LocalPlayer, CurTime, system.IsLinux, system.HasFocus, vgui.GetKeyboardFocus, gui.IsGameUIVisible, gui.IsConsoleVisible, math.min, Vector
+prone.ClientsideModelCache = prone.ClientsideModelCache or {}
 
--- Initialize other prone players when we finish connecting
-hook.Add("InitPostEntity", "prone.PlayerInitialized", function()
-	for i, v in ipairs(player.GetAll()) do
-		v.prone = v.prone or {}
-		v.prone.oldviewoffset = v.prone.oldviewoffset or Vector(0, 0, 64)
-		v.prone.oldviewoffset_ducked = v.prone.oldviewoffset_ducked or Vector(0, 0, 64)
-	end
-end)
-
--- This is so that the player's get up/down animation doesn't start at a random point.
-net.Receive("prone.ResetAnimation", function()
-	local ply = prone.ReadPlayer()
-	if IsValid(ply) then
-		ply:AnimRestartMainSequence()
-	end
-end)
-
-net.Receive("prone.OnDeath", function()
-	local ply = prone.ReadPlayer()
-
-	if IsValid(ply) then
-		prone.Exit(ply)
+hook.Add("EntityNetworkedVarChanged", "prone.DetectProneStateChanges", function(ply, nwVarName, oldVal, newVal)
+	if nwVarName == "prone.AnimationState" then
+		if newVal == PRONE_GETTINGDOWN or newVal == PRONE_GETTINGUP then
+			ply:AnimRestartMainSequence()
+			ply:SetCycle(0)
+			ply:SetPlaybackRate(1)
+		end
 	end
 end)
 
 -- Called to inform the player that they can't get up.
+local lastGetUpPrintTime = 0		-- Last time a print was made.
+local getUpWarningPrintDelay = 2	-- Time it takes before allowing another print.
 function prone.CantGetUpWarning()
-	chat.AddText(Color(210, 10, 10), "There is not enough room to get up here.")
+	local ct = CurTime()
+
+	if lastGetUpPrintTime < ct then
+		chat.AddText(Color(210, 10, 10), "There is not enough room to get up here.")
+		lastGetUpPrintTime = ct + getUpWarningPrintDelay
+	end
 end
 
--------------------------
--- Requesting to go prone
--------------------------
--- This is the proper, predicted, way to toggle prone.
+--------------------
+-- prone.SetImpulse
+--------------------
+-- Desc:		This is the proper, predicted, way to toggle prone.
+-- Arg One:		CUserCmd object, to set the impulse on.
 function prone.SetImpulse(cmd)
 	cmd:SetImpulse(PRONE_IMPULSE)
 end
 
+-----------------
+-- prone.Request
+-----------------
+-- Desc:		Begins sending a prone impulse to the server.
 local SendImpulse = false
 function prone.Request()
 	SendImpulse = true
@@ -52,11 +49,11 @@ end)
 local function boolToNumString(bool)
 	return bool and "1" or "0"
 end
-local bindkey_enabled = CreateClientConVar("prone_bindkey_enabled", boolToNumString(prone.config.DefaultBindKey_Enabled), true, false, "Disable this to disable the prone bind key from working.")
-local bindkey_key = CreateClientConVar("prone_bindkey_key", tostring(prone.config.DefaultBindKey), true, false, "Don't directly change this convar. Use the command prone_config.")
-local bindkey_doubletap = CreateClientConVar("prone_bindkey_doubletap", boolToNumString(prone.config.DefaultBindKey_DoubleTap), true, false, "Enable to make them double tap the bind key to go prone.")
-local jumptogetup = CreateClientConVar("prone_jumptogetup", "1", boolToNumString(prone.config.DefaultJumpToGetUp), false, "If enabled you can press the jump key to get up.")
-local jumptogetup_doubletap = CreateClientConVar("prone_jumptogetup_doubletap", boolToNumString(prone.config.DefaultJumpToGetUp_DoubleTap), true, false, "If enabled you must double press jump to get up.")
+local bindkey_enabled = CreateClientConVar("prone_bindkey_enabled", boolToNumString(prone.Config.DefaultBindKey_Enabled), true, false, "Disable this to disable the prone bind key from working.")
+local bindkey_key = CreateClientConVar("prone_bindkey_key", tostring(prone.Config.DefaultBindKey), true, false, "Don't directly change this convar. Use the command prone_config.")
+local bindkey_doubletap = CreateClientConVar("prone_bindkey_doubletap", boolToNumString(prone.Config.DefaultBindKey_DoubleTap), true, false, "Enable to make them double tap the bind key to go prone.")
+local jumptogetup = CreateClientConVar("prone_jumptogetup", "1", boolToNumString(prone.Config.DefaultJumpToGetUp), false, "If enabled you can press the jump key to get up.")
+local jumptogetup_doubletap = CreateClientConVar("prone_jumptogetup_doubletap", boolToNumString(prone.Config.DefaultJumpToGetUp_DoubleTap), true, false, "If enabled you must double press jump to get up.")
 
 local key_waspressed = false
 local last_prone_request = 0
@@ -76,7 +73,7 @@ hook.Add("CreateMove", "prone.ReadBindKeys", function(cmd)
 		end
 	end
 
-	if (system_IsLinux() or system_HasFocus()) and bindkey_enabled:GetBool() and ply:OnGround() and not vgui_GetKeyboardFocus() and not gui_IsGameUIVisible() and not gui_IsConsoleVisible() then
+	if (system.IsLinux() or system.HasFocus()) and bindkey_enabled:GetBool() and ply:OnGround() and not vgui.GetKeyboardFocus() and not gui.IsGameUIVisible() and not gui.IsConsoleVisible() then
 		if input.IsKeyDown(bindkey_key:GetInt()) then
 			key_waspressed = true
 
@@ -121,7 +118,6 @@ hook.Add("KeyPress", "Prone.JumpToGetUp", function(ply, key)
 	end
 end)
 
-
 -------------------
 -- View Transitions
 -------------------
@@ -136,9 +132,18 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 	if ply ~= LocalPlayer() or enabledViewTransitions:GetBool() then
 		return
 	end
-	ply.prone = ply.prone or {
-		oldviewoffset = Vector(0, 0, 64)
-	}
+	
+	local result = hook.Run("prone.ShouldChangeCalcView", localply)
+	if result == false then
+		return
+	end
+
+	local oldViewOffset = Vector(0, 0, 64)
+	local plyProneStateData = prone.PlayerStateDatas[ply:SteamID()]
+	if plyProneStateData then
+		oldViewOffset = plyProneStateData:GetOriginalViewOffest()
+		ply:SetViewOffsetDucked(plyProneStateData:GetOriginalViewOffsetDucked())
+	end
 
 	local time = RealTime()
 	if lastTime == 0 then
@@ -151,11 +156,11 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 	-- transitionVectorZ is the amount we are going down by.
 	transitionVectorZ = transitionVectorZ + (transitionSpeed * (time - lastTime))
 	lastTime = time
-	transitionVectorZ = math_min(transitionVectorZ, (ply.prone.oldviewoffset.z or 64) - prone.config.View.z)
+	transitionVectorZ = math.min(transitionVectorZ, oldViewOffset.z - prone.Config.View.z)
 
 	local animstate = ply:GetProneAnimationState()
 	if animstate == PRONE_GETTINGDOWN then
-		transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ) - (ply:GetViewOffset() - ply.prone.oldviewoffset)
+		transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ) - (ply:GetViewOffset() - oldViewOffset)
 	elseif animstate == PRONE_GETTINGUP then
 		transitionVector = Vector(pos.x, pos.y, pos.z + transitionVectorZ)
 	elseif not reset then
@@ -175,22 +180,16 @@ hook.Add("CalcViewModelView", "prone.ViewTransitions", function()
 		return
 	end
 
-	-- Customizable Weaponry 2 Support
-	if CustomizableWeaponry then
-		local weapon = localply:GetActiveWeapon()
-		if IsValid(weapon) and weapon.CW20Weapon then
-			return
-		end
+	local result = hook.Run("prone.ShouldChangeCalcViewModelView", localply)
+	if result == false then
+		return
 	end
 
 	local animstate = localply:GetProneAnimationState()
-	if animstate == PRONE_GETTINGDOWN then
-		return transitionVector
-	elseif animstate == PRONE_GETTINGUP then
+	if animstate == PRONE_GETTINGDOWN or animstate == PRONE_GETTINGU then
 		return transitionVector
 	end
 end)
-
 
 -------------------------------------------------
 -- A derma panel for configuring your prone keys.
@@ -255,7 +254,7 @@ concommand.Add("prone_config", function()
 	resetbutton:SetSize(200, 20)
 	function resetbutton:DoClick()
 		RunConsoleCommand("prone_bindkey_enabled", "1")
-		RunConsoleCommand("prone_bindkey_key", tostring(prone.config.DefaultBindKey))
+		RunConsoleCommand("prone_bindkey_key", tostring(prone.Config.DefaultBindKey))
 		RunConsoleCommand("prone_bindkey_doubletap", "1")
 		RunConsoleCommand("prone_jumptogetup", "1")
 		RunConsoleCommand("prone_jumptogetup_doubletap", "1")
