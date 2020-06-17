@@ -42,7 +42,6 @@ $sequence seq_wave_smg1		../$g$/wave_smg1 fps 28
 //  ANIMATION LAYERS
 // ------------------------------------
 
-
 $sequence idle_layer                      a_idle_layer     delta loop realtime fps 30 iklock rfoot 1 0 iklock lfoot 1 0 hidden
 $sequence idle_layer_alt                  a_idle_layer_alt delta loop realtime fps 20 iklock rfoot 1 0 iklock lfoot 1 0 hidden weightlist 75percent
 $sequence idle_layer_alt_nofeetlock       a_idle_layer_alt delta loop realtime fps 30 hidden
@@ -214,13 +213,15 @@ $MakeRange	range_slam		"HL2DM_deploy_SLAM" 0 ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM
 $MakeRange	range_smg1		"..\combine_soldier_xsi\Shoot_SMG1" 0 ACT_HL2MP_GESTURE_RANGE_ATTACK_SMG1 1
 
 $MakeSplineGestureLockFeet reload_ar2 "..\combine_soldier_xsi\Reload_standing" PelvisOnly FasterUpperBodyBlend 15 52 65 fps 32 ACT_HL2MP_GESTURE_RELOAD_AR2 1 ikrule lhand release range 0 10 55 65
-$MakeSplineGestureLockFeet reload_ar2_prone "..\combine_soldier_xsi\Reload_standing_prone" PelvisOnly FasterUpperBodyBlend 15 52 65 fps 32 ACT_HL2MP_GESTURE_RELOAD_AR2_PRONE 1 ikrule lhand release range 0 10 55 65
 $MakeSplineGestureLockFeet reload_pistol "..\police_xsi\Pistol_reload" PelvisOnlyHalved FasterUpperBodyBlend 14 35 45 fps 32 ACT_HL2MP_GESTURE_RELOAD_PISTOL 1 ikrule lhand release range 0 14 30 45
+$MakeSplineGestureLockFeet reload_smg1 "..\combine_soldier_xsi\Reload_standing" PelvisOnly FasterUpperBodyBlend 15 52 65 fps 34 ACT_HL2MP_GESTURE_RELOAD_SMG1 1 ikrule lhand release range 0 10 55 65
+$MakeSplineGestureLockFeet reload_smg1_alt "../base_f/crouch_smg1_reload" PelvisOnlyHalved FasterUpperBodyBlend 25 60 80 fps 40 ACT_HL2MP_GESTURE_RELOAD_SMG1 1 ikrule lhand release range 0 20 65 80
+$MakeSplineGestureLockFeet reload_ar2_prone "..\combine_soldier_xsi\Reload_standing_prone" PelvisOnly FasterUpperBodyBlend 15 52 65 fps 32 ACT_HL2MP_GESTURE_RELOAD_AR2_PRONE 1 ikrule lhand release range 0 10 55 65
 $MakeSplineGestureLockFeet reload_pistol_prone "..\police_xsi\Pistol_reload_prone" PelvisOnlyHalved FasterUpperBodyBlend 14 35 45 fps 32 ACT_HL2MP_GESTURE_RELOAD_PISTOL_PRONE 1 ikrule lhand release range 0 14 30 45
 $MakeSplineGestureLockFeet reload_revolver_prone "..\police_xsi\Pistol_reload_prone" PelvisOnlyHalved FasterUpperBodyBlend 14 35 45 fps 32 ACT_HL2MP_GESTURE_RELOAD_REVOLVER_PRONE 1 ikrule lhand release range 0 14 30 45
-$MakeSplineGestureLockFeet reload_smg1 "..\combine_soldier_xsi\Reload_standing" PelvisOnly FasterUpperBodyBlend 15 52 65 fps 34 ACT_HL2MP_GESTURE_RELOAD_SMG1 1 ikrule lhand release range 0 10 55 65
 $MakeSplineGestureLockFeet reload_smg1_prone "..\combine_soldier_xsi\Reload_standing_prone" PelvisOnly FasterUpperBodyBlend 15 52 65 fps 34 ACT_HL2MP_GESTURE_RELOAD_SMG1_PRONE 1 ikrule lhand release range 0 10 55 65
-$MakeSplineGestureLockFeet reload_smg1_alt "../base_f/crouch_smg1_reload" PelvisOnlyHalved FasterUpperBodyBlend 25 60 80 fps 40 ACT_HL2MP_GESTURE_RELOAD_SMG1 1 ikrule lhand release range 0 20 65 80
+
+
 
 $MakeSplineGestureLockFeet reload_dual "../gmod/reload_dual" PelvisOnly FasterUpperBodyBlend 10 80 100 fps 30 {
 	activity ACT_HL2MP_GESTURE_RELOAD_DUEL 1
@@ -244,6 +245,14 @@ $MakeSplineGestureLockFeet reload_dual_prone "../gmod/reload_dual_prone" PelvisO
 	event AE_CL_PLAYSOUND 79 "Weapon.StepRight"
 	}
 
+$MakeSplineGestureLockFeet reload_shotgun_prone "../gmod/reload_shotgun_prone" PelvisOnly FasterUpperBodyBlend 15 68 80 fps 30 {
+	ikrule lhand release range 0 10 70 80
+	activity ACT_HL2MP_GESTURE_RELOAD_SHOTGUN_PRONE 1
+	event AE_CL_PLAYSOUND 23 "Weapon_Shotgun.NPC_Reload"
+	event AE_CL_PLAYSOUND 29 "Weapon_Shotgun.NPC_Reload"
+	event AE_CL_PLAYSOUND 54 "Weapon_Shotgun.Special1"
+	}
+
 
 $MakeSplineGestureLockFeet reload_revolver "../gmod/reload_revolver" PelvisOnly FasterUpperBodyBlend 15 90 110 fps 38 {
 	ikrule lhand release range 0 15 90 110
@@ -256,14 +265,6 @@ $MakeSplineGestureLockFeet reload_revolver "../gmod/reload_revolver" PelvisOnly 
 $MakeSplineGestureLockFeet reload_shotgun "../gmod/reload_shotgun" PelvisOnly FasterUpperBodyBlend 15 68 80 fps 30 {
 	ikrule lhand release range 0 10 70 80
 	activity ACT_HL2MP_GESTURE_RELOAD_SHOTGUN 1
-	event AE_CL_PLAYSOUND 23 "Weapon_Shotgun.NPC_Reload"
-	event AE_CL_PLAYSOUND 29 "Weapon_Shotgun.NPC_Reload"
-	event AE_CL_PLAYSOUND 54 "Weapon_Shotgun.Special1"
-	}
-
-$MakeSplineGestureLockFeet reload_shotgun_prone "../gmod/reload_shotgun_prone" PelvisOnly FasterUpperBodyBlend 15 68 80 fps 30 {
-	ikrule lhand release range 0 10 70 80
-	activity ACT_HL2MP_GESTURE_RELOAD_SHOTGUN_PRONE 1
 	event AE_CL_PLAYSOUND 23 "Weapon_Shotgun.NPC_Reload"
 	event AE_CL_PLAYSOUND 29 "Weapon_Shotgun.NPC_Reload"
 	event AE_CL_PLAYSOUND 54 "Weapon_Shotgun.Special1"

@@ -1,10 +1,10 @@
 // create empty file
 
-$modelname humans\male_gestures.mdl
+//$modelname humans\male_gestures.mdl
 
-$include "..\humans\male\commonbones.qci"
-$include "..\humans\standardhierarchy.qci"
-$include "..\humans\standardikchains.qci"
+//$include "..\male\commonbones.qci"
+//$include "..\standardhierarchy.qci"
+//$include "..\standardikchains.qci"
 
-$sequence reference "..\humans\male_animations\idle01" frame 0 0
+//$sequence reference "..\..\base_m\idle01" frame 0 0
 
