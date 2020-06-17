@@ -2,7 +2,9 @@
 # The Prone Mod
 
 Coded by [Stalker]([https://steamcommunity.com/id/your-stalker](https://steamcommunity.com/id/your-stalker)) (George Petrou)
+
 Animations by [Stiffy360](https://steamcommunity.com/id/barnwellewell/)
+
 Animations ported to HL2 base by Stalker
 
 ## Installing
