@@ -159,6 +159,11 @@ PRONE_IMPULSE = 127
 -- Again, steal this number and there will be hell to pay.
 PRONE_CUSTOM_ANIM_EVENT_NUM = 69420
 
+if SERVER then
+	-- https://steamcommunity.com/sharedfiles/filedetails/?id=775573383
+	resource.AddWorkshop("775573383")
+end
+
 hook.Add("Initialize", "prone.Initialize", function()
 	-- Send files
 	if SERVER then
