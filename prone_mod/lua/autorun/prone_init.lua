@@ -24,6 +24,14 @@ HOOKS:
 	prone.ShouldChangeCalcViewModelView
 		- Client
 		- Same as prone.ShouldChangeCalcView but for their view model.
+	prone.CalcTransitionZ
+		- Client
+		- Can be used to change where the next view transition will be while entering and exitting prone.
+		- I recommend you don't use this, instead disable the transitions yourself with prone.ShouldChangeCalcView
+		- and prone.ShouldChangeCalcView, and implement them yourself if you need, but people asked for this.
+		- Arg One:		Local player.
+		- Arg Two:		Number, old transition Z.
+		- Return:		Number, new transition Z.
 
 	Note:	These hooks are called on the server and client entering prone
 			They are also predicted:
@@ -135,7 +143,7 @@ prone.Config = prone.Config or {}
 prone.Animations = prone.Animations or {}
 
 -- YearMonthDay
-prone.Version = 20200613
+prone.Version = 20200623
 
 -- States
 PRONE_GETTINGDOWN	= 0

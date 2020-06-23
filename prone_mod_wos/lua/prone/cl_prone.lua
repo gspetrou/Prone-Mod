@@ -154,9 +154,14 @@ hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 
 	-- Calculate a new Z value slightly lower than before.
 	-- transitionVectorZ is the amount we are going down by.
-	transitionVectorZ = transitionVectorZ + (transitionSpeed * (time - lastTime))
-	lastTime = time
-	transitionVectorZ = math.min(transitionVectorZ, oldViewOffset.z - prone.Config.View.z)
+	local result = hook.Run("prone.CalcTransitionZ", localply, transitionVectorZ)
+	if result == nil then
+		transitionVectorZ = transitionVectorZ + (transitionSpeed * (time - lastTime))
+		lastTime = time
+		transitionVectorZ = math.min(transitionVectorZ, oldViewOffset.z - prone.Config.View.z)
+	else
+		transitionVectorZ = result
+	end
 
 	local animstate = ply:GetProneAnimationState()
 	if animstate == PRONE_GETTINGDOWN then
