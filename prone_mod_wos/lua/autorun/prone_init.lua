@@ -221,3 +221,41 @@ function prone.ReadPlayer()
 	end
 	return Entity(i)
 end
+
+-- Sandbox C-Menu
+if CLIENT then
+	hook.Add("PopulateToolMenu", "prone.SandboxOptionsMenu", function()
+		spawnmenu.AddToolMenuOption("Utilities", "User", "prone_options", "Prone Options", "", "", function(panel)
+			panel:SetName("Prone Mod")
+			panel:AddControl("Header", {
+				Text = "",
+				Description = "Configuration menu for the Prone Mod."
+			})
+
+			panel:AddControl("Checkbox", {
+				Label = "Enable the bind key",
+				Command = "prone_bindkey_enabled"
+			})
+
+			panel:AddControl("Checkbox", {
+				Label = "Double-tap the bind key",
+				Command = "prone_bindkey_doubletap"
+			})
+
+			panel:AddControl("Checkbox", {
+				Label = "Can press jump to get up",
+				Command = "prone_jumptogetup"
+			})
+
+			panel:AddControl("Checkbox", {
+				Label = "Double-tap jump to get up",
+				Command = "prone_jumptogetup_doubletap"
+			})
+
+			panel:AddControl("Numpad", {
+				Label = "Set the Bind-Key",
+				Command = "prone_bindkey_key"
+			})
+		end)
+	end)
+end
