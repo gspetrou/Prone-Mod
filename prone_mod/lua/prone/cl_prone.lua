@@ -6,6 +6,8 @@ hook.Add("EntityNetworkedVarChanged", "prone.DetectProneStateChanges", function(
 			ply:AnimRestartMainSequence()
 			ply:SetCycle(0)
 			ply:SetPlaybackRate(1)
+		elseif newVal == PRONE_NOTINPRONE then
+			ply:ResetHull()
 		end
 	end
 end)
