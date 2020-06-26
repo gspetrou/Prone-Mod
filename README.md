@@ -21,11 +21,11 @@ If you're running a server make sure all your clients download the files too. **
 How do you add custom animations to Garry's Mod models?
  - You have to compile m_anm.mdl, f_anm.mdl, z_anm.mdl, found in the Garry's Mod model source [here](https://github.com/robotboy655/gmod-animations), with the animations you want.
 
-How do you add custom animations to the HL2 models?
- - That was done by decompiling "humans/male_postures.mdl" and "humans/female_postures.mdl" from the Garry's Mod vpk, then recompiling them with the animations you want to add. You can see those in the "Model Source/gmod_animations/hl2model_stuff" folder in this repository.
+How do you add custom animations to the HL2/Police models?
+ - That was done by decompiling "humans/male_postures.mdl", "humans/female_postures.mdl", and "police_ss.mdl" from the Garry's Mod vpk, then recompiling them with the animations you want to add. You can see those in the "Model Source/gmod_animations/hl2model_stuff" folder in this repository.
 
 Why can I only have one animation mod installed at a time?
-- Only one addon will be able to override m_anm.mdl, f_anm.mdl, z_anm.mdl, male_postures.mdl, and female_postures.mdl
+- Only one addon will be able to override m_anm.mdl, f_anm.mdl, z_anm.mdl, male_postures.mdl, female_postures.mdl, and police_ss.mdl
 
 What is the wOS version and why should I use it?
  - wOS is a coordinated effort to enable support for multiple animation mods at once. The wOS base overrides m_anm.mdl, f_anm.mdl, and z_anm.mdl, then tries to load all of the wOS extensions present. It loads them using the $IncludeModel qc command, and non-present wOS extensions will silently fail to load. This is different than my version of m_anm.mdl, f_anm.mdl, and z_anm.mdl which only include my own prone animations and don't look for any third-party animations.
