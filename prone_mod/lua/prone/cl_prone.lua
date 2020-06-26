@@ -1,5 +1,3 @@
-prone.ClientsideModelCache = prone.ClientsideModelCache or {}
-
 hook.Add("EntityNetworkedVarChanged", "prone.DetectProneStateChanges", function(ply, nwVarName, oldVal, newVal)
 	if nwVarName == "prone.AnimationState" then
 		if newVal == PRONE_GETTINGDOWN or newVal == PRONE_GETTINGUP then
@@ -123,80 +121,84 @@ end)
 -------------------
 -- View Transitions
 -------------------
-local enabledViewTransitions = CreateClientConVar("prone_disabletransitions", "0", true, false, "Should only be used by other addons in order to enable/disable the prone mod handling view transitions.")
 
-local transitionSpeed = 40
-local transitionVector = vector_origin
-local transitionVectorZ = 0
-local lastTime = 0
-local reset = false
-hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
-	if ply ~= LocalPlayer() or enabledViewTransitions:GetBool() then
-		return
-	end
-	
-	local result = hook.Run("prone.ShouldChangeCalcView", localply)
-	if result == false then
-		return
-	end
+-- Addons should use the prone.ShouldChangeCalcView and prone.ShouldChangeCalcViewModelView hooks instead of this cvar.
+local enabledViewTransitions = CreateClientConVar("prone_disabletransitions", "0", true, false, "Disables the slide down and up of the get up/down animations.")
 
-	local oldViewOffset = Vector(0, 0, 64)
-	local plyProneStateData = prone.PlayerStateDatas[ply:SteamID()]
-	if plyProneStateData then
-		oldViewOffset = plyProneStateData:GetOriginalViewOffest()
-		ply:SetViewOffsetDucked(plyProneStateData:GetOriginalViewOffsetDucked())
-	end
+do
+	local from, to, animEndTime, animLength, transitionVector
+	hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
+		if ply ~= LocalPlayer() or enabledViewTransitions:GetBool() then
+			return
+		end
 
-	local time = RealTime()
-	if lastTime == 0 then
-		lastTime = time
-		reset = false
-		return
-	end
+		local proneState = ply:GetProneAnimationState()
 
-	-- Calculate a new Z value slightly lower than before.
-	-- transitionVectorZ is the amount we are going down by.
-	local result = hook.Run("prone.CalcTransitionZ", localply, transitionVectorZ)
-	if result == nil then
-		transitionVectorZ = transitionVectorZ + (transitionSpeed * (time - lastTime))
-		lastTime = time
-		transitionVectorZ = math.min(transitionVectorZ, oldViewOffset.z - prone.Config.View.z)
-	else
-		transitionVectorZ = result
-	end
+		-- Reset state and return if were not in a transition phase.
+		if proneState ~= PRONE_GETTINGDOWN and proneState ~= PRONE_GETTINGUP then
+			from = nil
+			to = nil
+			timeDiff = nil
+			animLength = nil
+			animEndTime = nil
+			transitionVector = nil
+			return
+		end
+		
+		local result = hook.Run("prone.ShouldChangeCalcView", localply)
+		if result == false then
+			return
+		end
 
-	local animstate = ply:GetProneAnimationState()
-	if animstate == PRONE_GETTINGDOWN then
-		transitionVector = Vector(pos.x, pos.y, pos.z - transitionVectorZ) - (ply:GetViewOffset() - oldViewOffset)
-	elseif animstate == PRONE_GETTINGUP then
-		transitionVector = Vector(pos.x, pos.y, pos.z + transitionVectorZ)
-	elseif not reset then
-		transitionVector = vector_origin
-		transitionVectorZ = 0
-		lastTime = 0
-		reset = true
-		return
-	end
-	
-	return {origin = transitionVector}
-end)
-hook.Add("CalcViewModelView", "prone.ViewTransitions", function()
-	local localply = LocalPlayer()
+		-- Get original view offset.
+		local oldViewOffset = Vector(0, 0, 64)
+		local plyProneStateData = prone.PlayerStateDatas[ply:SteamID()]
+		if plyProneStateData then
+			oldViewOffset = plyProneStateData:GetOriginalViewOffest()
+			ply:SetViewOffsetDucked(plyProneStateData:GetOriginalViewOffsetDucked())
+		end
 
-	if enabledViewTransitions:GetBool() then
-		return
-	end
+		-- Set from, to, animLength, and animEndTime, at start of get down/up.
+		if not from then
+			animLength = ply:SequenceDuration((proneState == PRONE_GETTINGDOWN) and ply:LookupSequence("pronedown_stand") or ply:LookupSequence("proneup_stand"))
+			animEndTime = SysTime() + animLength
 
-	local result = hook.Run("prone.ShouldChangeCalcViewModelView", localply)
-	if result == false then
-		return
-	end
+			-- Getting down
+			if proneState == PRONE_GETTINGDOWN then
+				from = pos
+				to = pos - (oldViewOffset - prone.Config.View)
+			
+			-- Getting up
+			else
+				from = pos
+				to = pos + (oldViewOffset - prone.Config.View)
+			end
+		end
+		
+		local frac = (animEndTime - SysTime())/animLength
 
-	local animstate = localply:GetProneAnimationState()
-	if animstate == PRONE_GETTINGDOWN or animstate == PRONE_GETTINGU then
-		return transitionVector
-	end
-end)
+		-- You might by wondering: "hey, why are you to and from variables flipped from what the Wiki says?"
+		-- And my response will be: "Who fucking knows why this is backwards, but it is and it works!"
+		transitionVector = LerpVector(frac, to, from)
+		return {origin = transitionVector}
+	end)
+	hook.Add("CalcViewModelView", "prone.ViewTransitions", function()
+		local localply = LocalPlayer()
+
+		if enabledViewTransitions:GetBool() then
+			return
+		end
+
+		local result = hook.Run("prone.ShouldChangeCalcViewModelView", localply)
+		if result == false then
+			return
+		end
+
+		if transitionVector then
+			return transitionVector
+		end
+	end)
+end
 
 -------------------------------------------------
 -- A derma panel for configuring your prone keys.
