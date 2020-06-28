@@ -49,7 +49,7 @@ hook.Add("prone.ShouldChangeCalcViewModelView", "prone.DisableForCW2", function(
 	if CustomizableWeaponry then
 		local weapon = localply:GetActiveWeapon()
 		if IsValid(weapon) and weapon.CW20Weapon then
-			return
+			return false
 		end
 	end
 end)
