@@ -5,7 +5,7 @@ prone.PlayerStateDatas = prone.PlayerStateDatas or {}	-- Stores state data objec
 prone.PlayerStateData = {
 	Player = 0,
 	PlayerSteamID = "",
-	OriginalViewOffest = Vector(0, 0, 64),
+	OriginalViewOffset = Vector(0, 0, 64),
 	OriginalViewOffsetDucked = Vector(0, 0, 28),
 	StartTime = 0,
 	GetDownTime = 0,
@@ -36,8 +36,8 @@ end
 -- Desc:		Updates prone state data of a given player when they go to enter prone.
 function prone.PlayerStateData:UpdateDataOnProneEnter()
 	self.PlayerSteamID = self.Player:SteamID()
-	self.OriginalViewOffest = self.Player:GetViewOffset()
-	self.OriginalViewOffestDucked = self.Player:GetViewOffsetDucked()
+	self.OriginalViewOffset = self.Player:GetViewOffset()
+	self.OriginalViewOffsetDucked = self.Player:GetViewOffsetDucked()
 	self.StartTime = CurTime()
 
 	local seq = prone.Animations.gettingdown

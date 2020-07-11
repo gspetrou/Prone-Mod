@@ -196,7 +196,7 @@ function prone.Exit(ply)
 	local plyProneStateData = prone.PlayerStateDatas[ply:SteamID()]
 
 	if plyProneStateData then
-		ply:SetViewOffset(plyProneStateData:GetOriginalViewOffest())
+		ply:SetViewOffset(plyProneStateData:GetOriginalViewOffset())
 		ply:SetViewOffsetDucked(plyProneStateData:GetOriginalViewOffsetDucked())
 	else
 		-- Best guess in-case we somehow lose state data.
@@ -356,7 +356,7 @@ local GetMainActivityAnimation = {
 		if ply:GetProneAnimationLength() <= CurTime() then
 			local plyProneStateData = prone.PlayerStateDatas[ply:SteamID()]
 			if plyProneStateData then
-				ply:SetViewOffset(plyProneStateData:GetOriginalViewOffest())
+				ply:SetViewOffset(plyProneStateData:GetOriginalViewOffset())
 				ply:SetViewOffsetDucked(plyProneStateData:GetOriginalViewOffsetDucked())
 			else
 				-- Best guess in-case we somehow lose state data.

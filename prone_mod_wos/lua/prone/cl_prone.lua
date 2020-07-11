@@ -154,7 +154,7 @@ do
 		local oldViewOffset = Vector(0, 0, 64)
 		local plyProneStateData = prone.PlayerStateDatas[ply:SteamID()]
 		if plyProneStateData then
-			oldViewOffset = plyProneStateData:GetOriginalViewOffest()
+			oldViewOffset = plyProneStateData:GetOriginalViewOffset()
 			ply:SetViewOffsetDucked(plyProneStateData:GetOriginalViewOffsetDucked())
 		end
 

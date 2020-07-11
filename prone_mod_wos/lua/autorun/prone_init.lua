@@ -135,7 +135,7 @@ prone.Config = prone.Config or {}
 prone.Animations = prone.Animations or {}
 
 -- YearMonthDay
-prone.Version = 20200628
+prone.Version = 20200711
 
 -- States
 PRONE_GETTINGDOWN	= 0
