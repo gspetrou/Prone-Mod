@@ -126,61 +126,25 @@ end)
 local enabledViewTransitions = CreateClientConVar("prone_disabletransitions", "0", true, false, "Disables the slide down and up of the get up/down animations.")
 
 do
-	local from, to, animEndTime, animLength, transitionVector
+	local headPos, headAng
 	hook.Add("CalcView", "prone.ViewTransitions", function(ply, pos)
 		if ply ~= LocalPlayer() or enabledViewTransitions:GetBool() then
 			return
 		end
 
-		local proneState = ply:GetProneAnimationState()
-
-		-- Reset state and return if were not in a transition phase.
-		if proneState ~= PRONE_GETTINGDOWN and proneState ~= PRONE_GETTINGUP then
-			from = nil
-			to = nil
-			timeDiff = nil
-			animLength = nil
-			animEndTime = nil
-			transitionVector = nil
-			return
-		end
-		
-		local result = hook.Run("prone.ShouldChangeCalcView", localply)
+		local result = hook.Run("prone.ShouldChangeCalcView", ply)
 		if result == false then
 			return
 		end
 
-		-- Get original view offset.
-		local oldViewOffset = Vector(0, 0, 64)
-		local plyProneStateData = prone.PlayerStateDatas[ply:SteamID()]
-		if plyProneStateData then
-			oldViewOffset = plyProneStateData:GetOriginalViewOffset()
-			ply:SetViewOffsetDucked(plyProneStateData:GetOriginalViewOffsetDucked())
+		local proneState = ply:GetProneAnimationState()
+		if proneState ~= PRONE_GETTINGDOWN and proneState ~= PRONE_GETTINGUP then
+			headPos = nil
+			return
 		end
 
-		-- Set from, to, animLength, and animEndTime, at start of get down/up.
-		if not from then
-			animLength = ply:SequenceDuration((proneState == PRONE_GETTINGDOWN) and ply:LookupSequence("pronedown_stand") or ply:LookupSequence("proneup_stand"))
-			animEndTime = SysTime() + animLength
-
-			-- Getting down
-			if proneState == PRONE_GETTINGDOWN then
-				from = pos
-				to = pos - (oldViewOffset - prone.Config.View)
-			
-			-- Getting up
-			else
-				from = pos
-				to = pos + (oldViewOffset - prone.Config.View)
-			end
-		end
-		
-		local frac = (animEndTime - SysTime())/animLength
-
-		-- You might by wondering: "hey, why are you to and from variables flipped from what the Wiki says?"
-		-- And my response will be: "Who fucking knows why this is backwards, but it is and it works!"
-		transitionVector = LerpVector(frac, to, from)
-		return {origin = transitionVector}
+		headPos, headAng = ply:GetBonePosition(ply:LookupBone("ValveBiped.Bip01_Head1"))
+		return {origin = headPos}
 	end)
 	hook.Add("CalcViewModelView", "prone.ViewTransitions", function()
 		local localply = LocalPlayer()
@@ -194,8 +158,14 @@ do
 			return
 		end
 
-		if transitionVector then
-			return transitionVector
+		local proneState = localply:GetProneAnimationState()
+		if proneState ~= PRONE_GETTINGDOWN and proneState ~= PRONE_GETTINGUP then
+			headPos = nil
+			return
+		end
+
+		if headPos then
+			return headPos
 		end
 	end)
 end
