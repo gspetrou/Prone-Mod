@@ -68,7 +68,7 @@ end
 -- Arg One:		Player entity, whose state data this is.
 -- Returns:		prone.PlayerStateData object.
 function prone.PlayerStateData:New(ply)
-	data = {Player = ply}
+	local data = {Player = ply}
 	setmetatable(data, self)
 	self.__index = self
 	return data
